@@ -1,0 +1,251 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'org.owasp.dependencycheck'
+apply plugin: "com.cookpad.android.licensetools"
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testApplicationId = "com.sudoplatform.sudopasswordmanager.test"
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            testCoverageEnabled true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    testOptions {
+        animationsDisabled = true
+        unitTests.all {
+            outputs.upToDateWhen {false}
+            jacoco {
+                includeNoLocationClasses = true
+            }
+        }
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    packagingOptions {
+        pickFirst("META-INF/atomicfu.kotlin_module")
+        pickFirst("META-INF/sudopasswordmanager_debug.kotlin_module")
+    }
+}
+
+dependencies {
+    implementation 'com.nulab-inc:zxcvbn:1.3.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // Sudo Platform SDKs
+    implementation "com.sudoplatform:sudouser:8.2.1"
+    implementation "com.sudoplatform:sudoprofiles:3.1.10"
+    implementation "com.sudoplatform:sudosecurevault:3.0.0"
+    implementation "com.sudoplatform:sudoentitlements:1.0.0"
+
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'org.robolectric:robolectric:4.3.1'
+    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.3.0'
+    testImplementation "org.mockito:mockito-core:3.6.0"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
+    testImplementation 'org.slf4j:slf4j-jdk14:1.7.26' // To suppress log noise
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation "androidx.test:core:1.3.0"
+    androidTestImplementation "io.kotlintest:kotlintest-assertions:3.3.2"
+}
+
+// Returns a list of `configurations` which should not be scanned for vulnerabilities
+def getConfigurationsToSkip = { configs ->
+    configs.findAll {
+        it.name.startsWithAny("androidTest", "test", "lint") ||
+                it.name.contains("AndroidTest") ||
+                it.name.contains("UnitTest")
+    }.collect {
+        it.name
+    }
+}
+
+tasks.register("printConfigurationsToSkip") {
+    group = "OWASP dependency-check"
+    description = "Print the configurations which are skipped when scanning for vulnerable dependencies"
+    doLast {
+        println "Configurations to skip when scanning for vulnerable dependencies:"
+        println getConfigurationsToSkip(configurations).join("\n")
+    }
+}
+
+afterEvaluate {
+    // NOTE: this must be within `afterEvaluate` to ensure all the configurations have been created before filtering them
+    dependencyCheck {
+        suppressionFile file("../dependency-suppression.xml").toString()
+        failBuildOnCVSS 0
+        skipConfigurations = getConfigurationsToSkip(configurations)
+    }
+}
+
+// Kotlin Lint
+apply plugin: 'org.jmailen.kotlinter'
+
+kotlinter {
+    ignoreFailures = false
+    reporters = ['checkstyle', 'plain']
+    experimentalRules = false
+    fileBatchSize = 30
+}
+
+// Generate .editorconfig in the root directory of the project being built
+static void generateEditorConfig(final Project project) {
+    File editorConfig = new File("${project.rootDir}/.editorconfig")
+
+    editorConfig.write("[*.{kt,kts}]\n")
+    editorConfig.append("indent_style=space\n")
+    editorConfig.append("indent_size=4\n")
+    editorConfig.append("max_line_length=140\n")
+    editorConfig.append("disabled_rules=import-ordering\n")
+    editorConfig.append("ij_continuation_indent_size=4\n")
+    editorConfig.append("trim_trailing_whitespace=true\n")
+    editorConfig.append("insert_final_newline=true\n")
+    editorConfig.append("[*.xml]\n")
+    editorConfig.append("trim_trailing_whitespace=true\n")
+    editorConfig.append("insert_final_newline=true\n")
+}
+
+afterEvaluate {
+    generateEditorConfig(project)
+}
+
+// Jacoco test coverage
+apply plugin: 'jacoco'
+
+task jacocoTestReport(type: JacocoReport, dependsOn:"testDebugUnitTest") {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+    classDirectories.setFrom(fileTree(
+            dir: "${buildDir}/tmp/kotlin-classes/debug",
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*']
+    )
+    )
+    sourceDirectories.setFrom(files("${buildDir.parent}/sudopasswordmanager/src/main/java"))
+    executionData.setFrom(fileTree(["dir":"$buildDir", "includes":["**/*.exec", "**/*.ec"]]))
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+// Dokka documentation generation
+apply plugin: 'org.jetbrains.dokka'
+
+dokkaHtml {
+    outputDirectory.set(project.file("$buildDir/javadoc"))
+
+    dokkaSourceSets {
+        configureEach {
+
+            jdkVersion.set(8)
+            skipEmptyPackages.set(true)
+
+            includes.from("packages.md")
+            samples.from("src/test/java/com/sudoplatform/sudopasswordmanager/samples/Samples.kt")
+
+            // Root URL of the generated documentation to link with. The trailing slash is required!
+            externalDocumentationLink {
+                url.set(new URL("https://sudoplatform.github.io/sudo-user-android/sudouser/"))
+                packageListUrl.set(new URL("https://sudoplatform.github.io/sudo-user-android/sudouser/package-list"))
+            }
+        }
+    }
+}
+
+// Setup common publishing variables
+ext {
+    projectGroup = 'com.sudoplatform'
+    projectArtifact = project.name
+    projectDescription = 'Password Manager SDK for the Sudo Platform by Anonyome Labs.'
+    projectUrl = 'https://github.com/sudoplatform/sudo-password-manager-android'
+    projectSCM = 'scm:git:github.com/sudoplatform/sudo-password-manager-android.git'
+    if (project.findProperty("tag")) {
+        projectVersion = "$tag"
+    } else {
+        projectVersion = project.android.defaultConfig.versionName
+    }
+}
+
+// Internal and External publishing
+if (project.findProperty("tag") && project.file("${rootProject.projectDir}/util/publish-mavencentral.gradle").exists()) {
+    apply from: "${rootProject.projectDir}/util/publish-mavencentral.gradle"
+} else if (project.file("${rootProject.projectDir}/util/publish-internal-android.gradle").exists()) {
+    apply from: "${rootProject.projectDir}/util/publish-internal-android.gradle"
+}
+
+// Sonarqube code analysis
+if (project.file("${rootProject.projectDir}/util/sonarqube.gradle").exists()) {
+    ext.sonarProjectKey = "sudo-passwordmanager-android"
+    ext.sonarProjectName = "sudo-passwordmanager-android"
+    ext.sonarExclusions = ["*.png", "*.jks", "*.json", "*.key"]
+    apply from: "${rootProject.projectDir}/util/sonarqube.gradle"
+}
+
+// License checking
+licenseTools {
+    licensesYaml = file("licenses.yml")
+    ignoredGroups = ["com.nhaarman:mockito-kotlin", "com.anonyome", "com.sudoplatform"]
+    ignoredProjects = ["org.mockito"]
+}
+@Grab('org.yaml:snakeyaml:1.17') // Yaml parser
+import org.yaml.snakeyaml.Yaml
+task checkLicenseHaveRequiredFields {
+    description = "Check every license entry has the mandatory fields"
+    group = "verification"
+    doLast {
+        def mandatoryFields = ["artifact", "name", "copyrightHolder", "url"]
+        Yaml parser = new Yaml()
+        def licenses = parser.load((file("licenses.yml") as File).text)
+        def errors = new StringBuilder()
+        licenses.each { artifact ->
+            mandatoryFields.each { field ->
+                if (artifact[field] == null) {
+                    errors.append("License entry '${artifact.artifact}' is missing required element `$field`\n")
+                }
+            }
+            if (artifact["license"] == null && artifact["licenseUrl" == null]) {
+                errors.append("License entry '${artifact.artifact}' must have one of [license,licenseUrl]\n")
+            }
+        }
+        if (errors.length() > 0) {
+            throw new GradleException("Missing license elements:\n$errors")
+        }
+    }
+}
+checkLicenses.finalizedBy checkLicenseHaveRequiredFields
+
