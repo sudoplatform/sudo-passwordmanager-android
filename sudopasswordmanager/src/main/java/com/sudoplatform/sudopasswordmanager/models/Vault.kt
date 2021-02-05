@@ -11,7 +11,8 @@ import kotlinx.android.parcel.Parcelize
 import java.util.Date
 
 /**
- * A password manager vault in which you can store login credentials.
+ * A password manager vault in which you can store [VaultItem]s such as login credentials,
+ * credit cards, and bank accounts
  */
 @Parcelize
 open class Vault(

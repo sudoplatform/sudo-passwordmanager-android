@@ -5,6 +5,7 @@
  */
 package com.sudoplatform.sudopasswordmanager
 
+import com.nhaarman.mockitokotlin2.atLeastOnce
 import com.nhaarman.mockitokotlin2.doThrow
 import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
@@ -34,7 +35,9 @@ internal class SudoPasswordManagerClientDeregisterTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -46,6 +49,7 @@ internal class SudoPasswordManagerClientDeregisterTest : BaseTests() {
         verify(mockKeyStore).resetKeys()
         verify(mockSecureVaultClient).deregister()
         verify(mockSecureVaultClient).reset()
+        verify(mockVaultStore, atLeastOnce()).removeAll()
     }
 
     @Test
@@ -60,6 +64,7 @@ internal class SudoPasswordManagerClientDeregisterTest : BaseTests() {
         }
 
         verify(mockSecureVaultClient).deregister()
+        verify(mockVaultStore, atLeastOnce()).removeAll()
     }
 
     @Test
@@ -74,6 +79,7 @@ internal class SudoPasswordManagerClientDeregisterTest : BaseTests() {
         }
 
         verify(mockKeyStore).resetKeys()
+        verify(mockVaultStore, atLeastOnce()).removeAll()
         verify(mockSecureVaultClient).deregister()
     }
 
@@ -89,6 +95,7 @@ internal class SudoPasswordManagerClientDeregisterTest : BaseTests() {
         }
 
         verify(mockKeyStore).resetKeys()
+        verify(mockVaultStore, atLeastOnce()).removeAll()
         verify(mockSecureVaultClient).deregister()
     }
 }

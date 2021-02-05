@@ -11,6 +11,9 @@ import kotlinx.android.parcel.Parcelize
 import java.util.Date
 import java.util.UUID
 
+/**
+ * Login Credentials with password history.
+ */
 @Parcelize
 data class VaultLogin(
     /** Unique identifier of this item */
@@ -19,7 +22,7 @@ data class VaultLogin(
     /** Time created. Unix Time (seconds since epoch) */
     override var createdAt: Date = Date(),
 
-    /** Time created. Unix Time (seconds since epoch) */
+    /** Time updated. Unix Time (seconds since epoch) */
     override var updatedAt: Date = Date(),
 
     /** Username for the service */

@@ -77,7 +77,7 @@ internal class VaultStoreTest : BaseTests() {
         vaultProxy?.secureVaultId shouldBe vaultId
 
         store.add(LOGIN, vaultId)
-        store.removeVaultLogin(LOGIN.id, vaultId)
+        store.removeVaultItem(LOGIN.id, vaultId)
         store.listVaults() shouldHaveSize 1
 
         store.deleteVault(vaultId)
@@ -136,7 +136,7 @@ internal class VaultStoreTest : BaseTests() {
         }
 
         shouldThrow<SudoPasswordManagerException.VaultNotFoundException> {
-            store.removeVaultLogin("42", "42")
+            store.removeVaultItem("42", "42")
         }
     }
 
@@ -183,7 +183,7 @@ internal class VaultStoreTest : BaseTests() {
                 throw NullPointerException("getVault returned null")
             }
             store.update(LOGIN, vaultProxy.secureVaultId)
-            store.removeVaultLogin(LOGIN.id, vaultProxy.secureVaultId)
+            store.removeVaultItem(LOGIN.id, vaultProxy.secureVaultId)
             store.deleteVault(vaultProxy.secureVaultId)
         } catch (e: Throwable) {
             println("$e")

@@ -16,7 +16,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class EntitlementState(
     /** Name of the Entitlement */
-    val name: Name = Name.MAX_VAULTS_PER_SUDO,
+    val name: Entitlement.Name = Entitlement.Name.MAX_VAULTS_PER_SUDO,
 
     /** The id of the sudo owning the entitlement **/
     val sudoId: String,
@@ -26,10 +26,4 @@ data class EntitlementState(
 
     /** The current value for the entitlement */
     val value: Int
-) : Parcelable {
-    /** Enum that represents the different types of entitlements available */
-    enum class Name {
-        /** The maximum number of vaults entitled per Sudo */
-        MAX_VAULTS_PER_SUDO
-    }
-}
+) : Parcelable

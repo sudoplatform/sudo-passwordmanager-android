@@ -17,10 +17,4 @@
         <gav regex="true">^com\.google\.protobuf:protobuf-java:.*$</gav>
         <cve>CVE-2015-5237</cve>
     </suppress>
-    <suppress>
-        <notes><![CDATA[
-            Guava temporary file creation is not used in the Sudo Password Manager SDK.
-            ]]></notes>
-        <cve>CVE-2020-8908</cve>
-    </suppress>
 </suppressions>

@@ -38,7 +38,9 @@ internal class SudoPasswordManagerClientCreateVaultTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -50,6 +52,7 @@ internal class SudoPasswordManagerClientCreateVaultTest : BaseTests() {
 
         verify(mockProfilesClient).getOwnershipProof(any(), anyString())
         verify(mockSecureVaultClient).createVault(any(), any(), any(), anyString(), anyString())
+        verify(mockVaultStore).importVault(any())
     }
 
     @Test

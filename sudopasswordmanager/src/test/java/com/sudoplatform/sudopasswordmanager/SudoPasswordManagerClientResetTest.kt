@@ -32,7 +32,9 @@ internal class SudoPasswordManagerClientResetTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -43,6 +45,7 @@ internal class SudoPasswordManagerClientResetTest : BaseTests() {
 
         verify(mockKeyStore).resetKeys()
         verify(mockSecureVaultClient).reset()
+        verify(mockVaultStore).removeAll()
     }
 
     @Test
@@ -57,6 +60,7 @@ internal class SudoPasswordManagerClientResetTest : BaseTests() {
         }
 
         verify(mockKeyStore).resetKeys()
+        verify(mockVaultStore).removeAll()
     }
 
     @Test
@@ -72,5 +76,6 @@ internal class SudoPasswordManagerClientResetTest : BaseTests() {
 
         verify(mockKeyStore).resetKeys()
         verify(mockSecureVaultClient).reset()
+        verify(mockVaultStore).removeAll()
     }
 }

@@ -16,7 +16,6 @@ import com.sudoplatform.sudosecurevault.Owner
 import com.sudoplatform.sudosecurevault.Vault
 import kotlinx.android.parcel.Parcelize
 import java.nio.charset.Charset
-import java.time.Instant
 import java.util.Date
 
 internal sealed class VaultSchema {
@@ -88,7 +87,7 @@ internal sealed class VaultSchema {
         @Keep
         @Parcelize
         data class BankAccount(
-            var createdAt: Instant,
+            var createdAt: Date,
             var id: String,
             var name: String,
             var notes: SecureField?,

@@ -17,6 +17,7 @@ import com.sudoplatform.sudopasswordmanager.crypto.CryptographyProvider
 import com.sudoplatform.sudopasswordmanager.crypto.DefaultCryptographyProvider
 import com.sudoplatform.sudopasswordmanager.crypto.DefaultKeyDerivingKeyStore
 import com.sudoplatform.sudopasswordmanager.crypto.KeyDerivingKeyStore
+import com.sudoplatform.sudopasswordmanager.entitlements.Entitlement
 import com.sudoplatform.sudopasswordmanager.entitlements.EntitlementState
 import com.sudoplatform.sudopasswordmanager.models.Vault
 import com.sudoplatform.sudopasswordmanager.models.VaultItem
@@ -170,23 +171,25 @@ interface SudoPasswordManagerClient {
      * Checks if the password manager is registered.
      *
      * @return The registration status
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getRegistrationStatus
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun getRegistrationStatus(): PasswordManagerRegistrationStatus
 
     /**
      * Registers with the password manager service. On successful return
-     * the password manager will be locked. If the user is already registered
-     * the [SudoPasswordManagerClient.PasswordManagerException.AlreadyRegisteredException]
-     * will be thrown.
+     * the password manager will be locked.
      *
      * @param masterPassword The master password that will be used to secure vaults.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.register
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun register(masterPassword: String)
 
     /**
      * Deregisters with the password manager. This will delete all the vaults.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.deregister
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun deregister()
@@ -194,12 +197,16 @@ interface SudoPasswordManagerClient {
     /**
      * Returns the secret code needed to bootstrap a new device.
      * This is part of a rescue kit and should be backed up in a secure location.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getSecretCode
      */
     fun getSecretCode(): String?
 
     /**
      * Locks the password manager. If the password manager hasn't been registered, or the secret
      * code is missing, this function does nothing.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.lock
      */
     suspend fun lock()
 
@@ -209,6 +216,7 @@ interface SudoPasswordManagerClient {
      * @param masterPassword Master password of the password manager
      * @param secretCode The secret code to unlock on a new device. Can be null if password
      * manager has been used on this device in the past.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.unlock
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun unlock(masterPassword: String, secretCode: String? = null)
@@ -217,14 +225,17 @@ interface SudoPasswordManagerClient {
      * Resets the client and removes any encryption keys and data. You should backup the secret
      * code before calling this function. All vault data will be irretrievably lost if the key
      * is lost.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.reset
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun reset()
 
     /**
-     * Checks if the vault is locked or not
+     * Checks if the password manager is locked
      *
-     * @return True if the vault is unlocked, otherwise false.
+     * @return True if the password manager is unlocked, otherwise false.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.isLocked
      */
     fun isLocked(): Boolean
 
@@ -232,12 +243,15 @@ interface SudoPasswordManagerClient {
      * Creates a new vault on the service. Requires password manager to be registered and unlocked.
      *
      * @param sudoId Identifier of the [Sudo] to associate with the vault.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.createVault
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun createVault(sudoId: String): Vault
 
     /**
      * Fetches all vaults. Requires password manager to be registered and unlocked.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.listVaults
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun listVaults(): List<Vault>
@@ -246,6 +260,7 @@ interface SudoPasswordManagerClient {
      * Fetches the vault with the specified identifier. Requires password manager to be registered and unlocked.
      *
      * @param id Identifier of the vault
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getVault
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun getVault(id: String): Vault?
@@ -254,6 +269,7 @@ interface SudoPasswordManagerClient {
      * Updates a vault. Requires password manager to be registered and unlocked.
      *
      * @param vault The vault to update
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.update
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun update(vault: Vault)
@@ -262,6 +278,7 @@ interface SudoPasswordManagerClient {
      * Deletes a vault. Does not require the password manager to be unlocked.
      *
      * @param id The identifier of the vault to delete
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.deleteVault
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun deleteVault(id: String)
@@ -271,6 +288,7 @@ interface SudoPasswordManagerClient {
      *
      * @param currentPassword The current password.
      * @param newPassword The new password.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.changeMasterPassword
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun changeMasterPassword(currentPassword: String, newPassword: String)
@@ -281,6 +299,7 @@ interface SudoPasswordManagerClient {
      * @param item The [VaultItem] item to add.
      * @param vault [Vault] to add item to.
      * @return The identifier of the new item that was added
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.add
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun add(item: VaultItem, vault: Vault): String
@@ -289,6 +308,7 @@ interface SudoPasswordManagerClient {
      * Fetches the full list of credentials stored in the vault. Requires password manager to be registered and unlocked.
      *
      * @param vault [Vault] to list items from
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.listVaultItems
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun listVaultItems(vault: Vault): List<VaultItem>
@@ -299,6 +319,7 @@ interface SudoPasswordManagerClient {
      *
      * @param id Identifier of the [VaultItem] to search for
      * @param vault [Vault] to get the item from
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getVaultItem
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun getVaultItem(id: String, vault: Vault): VaultItem?
@@ -308,6 +329,7 @@ interface SudoPasswordManagerClient {
      *
      * @param item The [VaultItem] to update
      * @param vault [Vault] to update item in.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.update
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun update(item: VaultItem, vault: Vault)
@@ -318,6 +340,7 @@ interface SudoPasswordManagerClient {
      *
      * @param id Identifier of the [VaultItem] to remove.
      * @param vault [Vault] to remove item from.
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.removeVaultItem
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun removeVaultItem(id: String, vault: Vault)
@@ -328,11 +351,23 @@ interface SudoPasswordManagerClient {
      * @param template [ByteArray] of a template image for the Rescue Kit PDF. This can be null.
      * If it is null a default template will be used.
      * @return A Rescue Kit PDF with the secret code
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.renderRescueKit
      */
     suspend fun renderRescueKit(context: Context, template: ByteArray? = null): PdfDocument
 
     /**
-     * Fetches the current [EntitlementState].
+     * Fetches the list of [Entitlement] that indicates the resources the user is entitled to use.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getEntitlement
+     */
+    @Throws(SudoPasswordManagerException::class)
+    suspend fun getEntitlement(): List<Entitlement>
+
+    /**
+     * Fetches the current [EntitlementState] which includes information about how many
+     * entitlements have been consumed.
+     *
+     * @sample com.sudoplatform.sudopasswordmanager.samples.Samples.getEntitlementState
      */
     @Throws(SudoPasswordManagerException::class)
     suspend fun getEntitlementState(): List<EntitlementState>

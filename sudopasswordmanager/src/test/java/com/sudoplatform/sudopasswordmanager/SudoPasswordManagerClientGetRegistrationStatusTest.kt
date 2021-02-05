@@ -37,7 +37,9 @@ internal class SudoPasswordManagerClientGetRegistrationStatusTest : BaseTests() 
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 

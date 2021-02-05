@@ -15,7 +15,12 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.sudoplatform.sudopasswordmanager.TestData.KEY_VALUE
 import com.sudoplatform.sudopasswordmanager.TestData.MASTER_PASSWORD
 import com.sudoplatform.sudopasswordmanager.TestData.VAULT
-import com.sudoplatform.sudopasswordmanager.TestData.VAULT_ITEM
+import com.sudoplatform.sudopasswordmanager.TestData.VAULT_BANK_ACCOUNT_ITEM
+import com.sudoplatform.sudopasswordmanager.TestData.VAULT_CREDIT_CARD_ITEM
+import com.sudoplatform.sudopasswordmanager.TestData.VAULT_LOGIN_ITEM
+import com.sudoplatform.sudopasswordmanager.datastore.VaultBankAccountProxy
+import com.sudoplatform.sudopasswordmanager.datastore.VaultCreditCardProxy
+import com.sudoplatform.sudopasswordmanager.datastore.VaultLoginProxy
 import com.sudoplatform.sudosecurevault.exceptions.SudoSecureVaultException
 import io.kotlintest.shouldThrow
 import kotlinx.coroutines.runBlocking
@@ -46,7 +51,9 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -60,6 +67,8 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
         passwordManager.update(VAULT)
 
+        verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).updateVault(any())
         verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
@@ -83,6 +92,7 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
             passwordManager.update(VAULT)
         }
 
+        verify(mockVaultStore).getVault(anyString())
         verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
@@ -97,6 +107,8 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
         shouldThrow<SudoPasswordManagerException.VaultNotFoundException> {
             passwordManager.update(VAULT)
         }
+
+        verify(mockVaultStore).getVault(anyString())
     }
 
     @Test
@@ -122,18 +134,23 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
     fun `add() should call secureVaultClient`() = runBlocking<Unit> {
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
-        passwordManager.add(VAULT_ITEM, VAULT)
+        passwordManager.add(VAULT_LOGIN_ITEM, VAULT)
+        passwordManager.add(VAULT_CREDIT_CARD_ITEM, VAULT)
+        passwordManager.add(VAULT_BANK_ACCOUNT_ITEM, VAULT)
 
-        verify(mockVaultStore, times(1)).getVault(anyString())
-        verify(mockVaultStore).add(any(), anyString())
-        verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
+        verify(mockVaultStore, times(3)).getVault(anyString())
+        verify(mockVaultStore).add(any<VaultLoginProxy>(), anyString())
+        verify(mockVaultStore).add(any<VaultCreditCardProxy>(), anyString())
+        verify(mockVaultStore).add(any<VaultBankAccountProxy>(), anyString())
+        verify(mockVaultStore, times(3)).updateVault(any())
+        verify(mockSecureVaultClient, times(3)).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
     @Test
     fun `add() should throw when password manager is locked`() = runBlocking<Unit> {
 
         shouldThrow<SudoPasswordManagerException.VaultLockedException> {
-            passwordManager.add(VAULT_ITEM, VAULT)
+            passwordManager.add(VAULT_LOGIN_ITEM, VAULT)
         }
     }
 
@@ -146,9 +163,11 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
         shouldThrow<SudoPasswordManagerException.FailedException> {
-            passwordManager.add(VAULT_ITEM, VAULT)
+            passwordManager.add(VAULT_LOGIN_ITEM, VAULT)
         }
 
+        verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).add(any<VaultLoginProxy>(), anyString())
         verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
@@ -161,8 +180,11 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
         shouldThrow<SudoPasswordManagerException.VaultNotFoundException> {
-            passwordManager.add(VAULT_ITEM, VAULT)
+            passwordManager.add(VAULT_LOGIN_ITEM, VAULT)
         }
+
+        verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).add(any<VaultLoginProxy>(), anyString())
     }
 
     @Test
@@ -174,10 +196,11 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
         shouldThrow<CancellationException> {
-            passwordManager.add(VAULT_ITEM, VAULT)
+            passwordManager.add(VAULT_LOGIN_ITEM, VAULT)
         }
 
         verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).add(any<VaultLoginProxy>(), anyString())
     }
 
     //
@@ -191,6 +214,8 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
         passwordManager.removeVaultItem("id", VAULT)
 
         verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).removeVaultItem(anyString(), anyString())
+        verify(mockVaultStore).updateVault(any())
         verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
@@ -214,6 +239,8 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
             passwordManager.removeVaultItem("id", VAULT)
         }
 
+        verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).removeVaultItem(anyString(), anyString())
         verify(mockSecureVaultClient).updateVault(any(), any(), anyString(), any(), any(), anyString())
     }
 
@@ -228,6 +255,9 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
         shouldThrow<SudoPasswordManagerException.VaultNotFoundException> {
             passwordManager.removeVaultItem("id", VAULT)
         }
+
+        verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).removeVaultItem(anyString(), anyString())
     }
 
     @Test
@@ -243,5 +273,6 @@ internal class SudoPasswordManagerClientUpdateVaultTest : BaseTests() {
         }
 
         verify(mockVaultStore).getVault(anyString())
+        verify(mockVaultStore).removeVaultItem(anyString(), anyString())
     }
 }

@@ -10,6 +10,9 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 import java.util.Date
 
+/**
+ * A password that is held securely in memory until its value is needed.
+ */
 @Parcelize
 data class VaultItemPassword(
     /** The secure value */

@@ -48,8 +48,27 @@ internal class DefaultVaultStore : VaultStore {
     /** Imports a [VaultProxy] into the store. Intended to be used when a new vault is created */
     override fun importVault(vault: VaultProxy) {
         synchronized(vaults) {
-            vaults.put(vault.secureVaultId, vault)
+            vaults.put(vault.secureVaultId, defensiveCopyOf(vault))
         }
+    }
+
+    // Defensive copy of the vault
+    private fun defensiveCopyOf(vault: VaultProxy): VaultProxy {
+        val logins = mutableListOf<VaultSchema.VaultSchemaV1.Login>().apply {
+            addAll(vault.vaultData.login)
+        }
+        val cards = mutableListOf<VaultSchema.VaultSchemaV1.CreditCard>().apply {
+            addAll(vault.vaultData.creditCard)
+        }
+        val banks = mutableListOf<VaultSchema.VaultSchemaV1.BankAccount>().apply {
+            addAll(vault.vaultData.bankAccount)
+        }
+        val vaultData = vault.vaultData.copy(
+            bankAccount = banks,
+            creditCard = cards,
+            login = logins
+        )
+        return vault.copy(vaultData = vaultData)
     }
 
     override fun updateVault(metadata: VaultMetadata) {
@@ -96,6 +115,22 @@ internal class DefaultVaultStore : VaultStore {
         }
     }
 
+    override fun add(creditCard: VaultCreditCardProxy, id: String) {
+        synchronized(vaults) {
+            val vault = vaults[id] ?: throw SudoPasswordManagerException.VaultNotFoundException()
+            vault.vaultData.creditCard.add(creditCard)
+            vaults[id] = vault
+        }
+    }
+
+    override fun add(bankAccount: VaultBankAccountProxy, id: String) {
+        synchronized(vaults) {
+            val vault = vaults[id] ?: throw SudoPasswordManagerException.VaultNotFoundException()
+            vault.vaultData.bankAccount.add(bankAccount)
+            vaults[id] = vault
+        }
+    }
+
     override fun update(login: VaultLoginProxy, vaultId: String) {
         synchronized(vaults) {
             val vault = vaults[vaultId] ?: throw SudoPasswordManagerException.VaultNotFoundException()
@@ -109,11 +144,40 @@ internal class DefaultVaultStore : VaultStore {
         }
     }
 
-    override fun removeVaultLogin(id: String, vaultId: String) {
+    override fun update(creditCard: VaultCreditCardProxy, vaultId: String) {
         synchronized(vaults) {
             val vault = vaults[vaultId] ?: throw SudoPasswordManagerException.VaultNotFoundException()
 
-            vault.vaultData.login.removeAll { it.id == id }
+            val mutableCreditCard = creditCard
+            mutableCreditCard.updatedAt = Date()
+
+            vault.vaultData.creditCard.removeAll { it.id == creditCard.id }
+            vault.vaultData.creditCard.add(mutableCreditCard)
+            vaults[vaultId] = vault
+        }
+    }
+
+    override fun update(bankAccount: VaultBankAccountProxy, vaultId: String) {
+        synchronized(vaults) {
+            val vault = vaults[vaultId] ?: throw SudoPasswordManagerException.VaultNotFoundException()
+
+            val mutableBankAccount = bankAccount
+            mutableBankAccount.updatedAt = Date()
+
+            vault.vaultData.bankAccount.removeAll { it.id == bankAccount.id }
+            vault.vaultData.bankAccount.add(mutableBankAccount)
+            vaults[vaultId] = vault
+        }
+    }
+
+    override fun removeVaultItem(itemId: String, vaultId: String) {
+        synchronized(vaults) {
+            val vault = vaults[vaultId] ?: throw SudoPasswordManagerException.VaultNotFoundException()
+            with(vault.vaultData) {
+                login.removeAll { it.id == itemId }
+                creditCard.removeAll { it.id == itemId }
+                bankAccount.removeAll { it.id == itemId }
+            }
             vaults[vaultId] = vault
         }
     }

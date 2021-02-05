@@ -28,7 +28,6 @@ import java.io.FileNotFoundException
 import java.util.UUID
 
 private const val KEY_SIZE_BITS = 256
-private const val IS_ID_637_FIXED = false
 
 /**
  * Test the operation of the [SudoSecureVaultClient].
@@ -120,7 +119,7 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
             listVaultsMetadataOnly() shouldHaveSize 0
             listVaults(keyDerivingKey, masterPassword) shouldHaveSize 0
 
-            val sudo = sudoClient.createSudo(AndroidTestData.SUDO)
+            val sudo = sudoClient.createSudo(TestData.SUDO)
             val ownershipProof = getOwnershipProof(sudo)
 
             val vaultMetadata = createVault(keyDerivingKey, masterPassword, jsonBlob, "json", ownershipProof)
@@ -201,11 +200,8 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
             listVaults(keyDerivingKey, newMasterPassword) shouldHaveSize 0
             listVaultsMetadataOnly() shouldHaveSize 0
 
-            // This method below doesn't throw when given a bad password. Enable when ID-637 is fixed.
-            if (IS_ID_637_FIXED) {
-                shouldThrow<Throwable> {
-                    listVaults(keyDerivingKey, "badpassword".toByteArray())
-                }
+            shouldThrow<Throwable> {
+                listVaults(keyDerivingKey, "badpassword".toByteArray())
             }
         }
     }

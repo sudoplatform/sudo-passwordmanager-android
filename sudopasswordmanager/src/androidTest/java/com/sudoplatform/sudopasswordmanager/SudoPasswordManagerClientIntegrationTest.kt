@@ -9,10 +9,13 @@ package com.sudoplatform.sudopasswordmanager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sudoplatform.sudopasswordmanager.crypto.DefaultCryptographyProvider
 import com.sudoplatform.sudopasswordmanager.crypto.DefaultKeyDerivingKeyStore
-import com.sudoplatform.sudopasswordmanager.entitlements.EntitlementState
+import com.sudoplatform.sudopasswordmanager.entitlements.Entitlement
 import com.sudoplatform.sudopasswordmanager.models.SecureFieldValue
+import com.sudoplatform.sudopasswordmanager.models.VaultBankAccount
+import com.sudoplatform.sudopasswordmanager.models.VaultCreditCard
 import com.sudoplatform.sudopasswordmanager.models.VaultItemNote
 import com.sudoplatform.sudopasswordmanager.models.VaultItemPassword
+import com.sudoplatform.sudopasswordmanager.models.VaultItemValue
 import com.sudoplatform.sudopasswordmanager.models.VaultLogin
 import com.sudoplatform.sudosecurevault.SudoSecureVaultClient
 import io.kotlintest.fail
@@ -195,6 +198,27 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         }
     }
 
+    @Test
+    fun operationsOnLockedVaultShouldNotThrow() = runBlocking<Unit> {
+
+        // Can only run if client config files are present
+        assumeTrue(clientConfigFilesPresent())
+
+        with(passwordManagerClient) {
+            reset()
+
+            signInAndRegisterUser()
+
+            getRegistrationStatus() shouldBe PasswordManagerRegistrationStatus.NOT_REGISTERED
+
+            register(masterPassword)
+            getRegistrationStatus() shouldBe PasswordManagerRegistrationStatus.REGISTERED
+
+            isLocked() shouldBe true
+            getEntitlementState() shouldHaveSize 0
+        }
+    }
+
     /**
      * Test the happy path of password manager operations, which is the normal flow a
      * user would be expected to exercise.
@@ -224,7 +248,7 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
             isLocked() shouldBe false
 
             // Create a Sudo that will be the vault owner
-            val sudo = sudoClient.createSudo(AndroidTestData.SUDO)
+            val sudo = sudoClient.createSudo(TestData.SUDO)
             sudo shouldNotBe null
             sudo.id shouldNotBe null
 
@@ -232,116 +256,178 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
             val entitlements = getEntitlementState()
             entitlements shouldHaveSize 1
             with(entitlements[0]) {
-                name shouldBe EntitlementState.Name.MAX_VAULTS_PER_SUDO
+                name shouldBe Entitlement.Name.MAX_VAULTS_PER_SUDO
                 limit shouldBeGreaterThan 0
                 value shouldBe 0
             }
 
             // Create a vault for the Sudo
-            val vault = createVault(sudo.id!!)
+            var vault = createVault(sudo.id!!)
             vault.id shouldNotBe null
             vault.createdAt.time shouldBeGreaterThan 0L
             vault.updatedAt.time shouldBeGreaterThan 0L
             val vaultId = vault.id
             getEntitlementState()[0].value shouldBe 1
 
-            // Add a login to the vault
-            var password = VaultItemPassword(SecureFieldValue(AndroidTestData.PLAIN_TEXT))
-            var note = VaultItemNote(SecureFieldValue(AndroidTestData.PLAIN_TEXT))
-            val itemId = UUID.randomUUID().toString()
-            var item = VaultLogin(
-                id = itemId,
-                name = AndroidTestData.NAME,
-                user = AndroidTestData.USER,
+            // Add a login, credit card, and a bank account to the vault
+            var password = VaultItemPassword(SecureFieldValue(TestData.PLAIN_TEXT))
+            var note = VaultItemNote(SecureFieldValue(TestData.PLAIN_TEXT))
+            val loginId = UUID.randomUUID().toString()
+            var login = VaultLogin(
+                id = loginId,
+                name = TestData.NAME,
+                user = TestData.USER,
                 password = password,
                 notes = note
             )
-            add(item, vault)
+            add(login, vault)
+
+            val cardNumber = VaultItemValue(SecureFieldValue(TestData.PLAIN_TEXT))
+            val securityCode = VaultItemValue(SecureFieldValue(TestData.PLAIN_TEXT))
+            val creditCardId = UUID.randomUUID().toString()
+            val creditCard = VaultCreditCard(
+                id = creditCardId,
+                name = TestData.NAME,
+                notes = note,
+                cardName = TestData.NAME,
+                cardNumber = cardNumber,
+                cardType = "Visa",
+                securityCode = securityCode
+            )
+            add(creditCard, vault)
             update(vault)
 
-            // Fetch the vault item and check it
+            val bankAccountNumber = VaultItemValue(SecureFieldValue(TestData.PLAIN_TEXT))
+            val bankAccountPin = VaultItemValue(SecureFieldValue(TestData.PLAIN_TEXT))
+            val bankAccountId = UUID.randomUUID().toString()
+            val bankAccount = VaultBankAccount(
+                id = bankAccountId,
+                name = TestData.NAME,
+                notes = note,
+                accountNumber = bankAccountNumber,
+                accountType = "Savings",
+                accountPin = bankAccountPin
+            )
+            add(bankAccount, vault)
+            update(vault)
+
+            // Fetch the vault items and check them
             val items = listVaultItems(vault)
-            items shouldHaveSize 1
-            with(items[0]) {
-                id shouldBe itemId
-                createdAt.time shouldBeGreaterThan 0L
-                updatedAt.time shouldBeGreaterThan 0L
+            items shouldHaveSize 3
+            items.forEach {
+                if (it is VaultLogin) {
+                    it.id shouldBe loginId
+                    it.createdAt.time shouldBeGreaterThan 0L
+                    it.updatedAt.time shouldBeGreaterThan 0L
+                } else if (it is VaultCreditCard) {
+                    it.id shouldBe creditCardId
+                    it.createdAt.time shouldBeGreaterThan 0L
+                    it.updatedAt.time shouldBeGreaterThan 0L
+                } else if (it is VaultBankAccount) {
+                    it.id shouldBe bankAccountId
+                    it.createdAt.time shouldBeGreaterThan 0L
+                    it.updatedAt.time shouldBeGreaterThan 0L
+                }
             }
-            var fetchedItem = getVaultItem(itemId, vault)
+            var fetchedItem = getVaultItem(loginId, vault)
             fetchedItem shouldNotBe null
             (fetchedItem is VaultLogin) shouldBe true
             fetchedItem as VaultLogin
-            fetchedItem.name shouldBe item.name
-            fetchedItem.password?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.notes?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.url shouldBe item.url
-            fetchedItem.user shouldBe item.user
-            fetchedItem.previousPasswords shouldBe item.previousPasswords
+            fetchedItem.name shouldBe login.name
+            fetchedItem.password?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.url shouldBe login.url
+            fetchedItem.user shouldBe login.user
+            fetchedItem.previousPasswords shouldBe login.previousPasswords
 
+            fetchedItem = getVaultItem(creditCardId, vault)
+            fetchedItem shouldNotBe null
+            (fetchedItem is VaultCreditCard) shouldBe true
+            fetchedItem as VaultCreditCard
+            fetchedItem.name shouldBe creditCard.name
+            fetchedItem.cardName shouldBe TestData.NAME
+            fetchedItem.cardNumber?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.securityCode?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
+
+            fetchedItem = getVaultItem(bankAccountId, vault)
+            fetchedItem shouldNotBe null
+            (fetchedItem is VaultBankAccount) shouldBe true
+            fetchedItem as VaultBankAccount
+            fetchedItem.name shouldBe bankAccount.name
+            fetchedItem.accountNumber?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.accountPin?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
             // Update the vault item
             val updatedItem = VaultLogin(
-                id = itemId,
-                name = AndroidTestData.NAME + "_updated",
-                user = AndroidTestData.USER + "_updated",
+                id = loginId,
+                name = TestData.NAME + "_updated",
+                user = TestData.USER + "_updated",
                 password = password,
                 notes = note
             )
             update(updatedItem, vault)
-            listVaultItems(vault) shouldHaveSize 1
-            fetchedItem = getVaultItem(itemId, vault)
+            listVaultItems(vault) shouldHaveSize 3
+            fetchedItem = getVaultItem(loginId, vault)
             fetchedItem shouldNotBe null
             (fetchedItem is VaultLogin) shouldBe true
             fetchedItem as VaultLogin
-            fetchedItem.name shouldBe item.name + "_updated"
-            fetchedItem.password?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.notes?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.url shouldBe item.url
-            fetchedItem.user shouldBe item.user + "_updated"
-            fetchedItem.previousPasswords shouldBe item.previousPasswords
+            fetchedItem.name shouldBe login.name + "_updated"
+            fetchedItem.password?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.url shouldBe login.url
+            fetchedItem.user shouldBe login.user + "_updated"
+            fetchedItem.previousPasswords shouldBe login.previousPasswords
 
             // Add another login to the vault
-            password = VaultItemPassword(SecureFieldValue(AndroidTestData.PLAIN_TEXT))
-            note = VaultItemNote(SecureFieldValue(AndroidTestData.PLAIN_TEXT))
-            val itemId2 = UUID.randomUUID().toString()
-            item = VaultLogin(
-                id = itemId2,
-                name = AndroidTestData.NAME,
-                user = AndroidTestData.USER,
+            password = VaultItemPassword(SecureFieldValue(TestData.PLAIN_TEXT))
+            note = VaultItemNote(SecureFieldValue(TestData.PLAIN_TEXT))
+            val loginId2 = UUID.randomUUID().toString()
+            login = VaultLogin(
+                id = loginId2,
+                name = TestData.NAME,
+                user = TestData.USER,
                 password = password,
                 notes = note
             )
-            add(item, vault)
+            add(login, vault)
             update(vault)
 
-            // Check there are two vault items
-            listVaultItems(vault) shouldHaveSize 2
+            // Check there are four vault items
+            listVaultItems(vault) shouldHaveSize 4
 
             // Delete the first vault item
-            removeVaultItem(itemId, vault)
-            listVaultItems(vault) shouldHaveSize 1
-            getVaultItem(itemId, vault) shouldBe null
-            fetchedItem = getVaultItem(itemId2, vault)
+            removeVaultItem(loginId, vault)
+            listVaultItems(vault) shouldHaveSize 3
+            getVaultItem(loginId, vault) shouldBe null
+            fetchedItem = getVaultItem(loginId2, vault)
             fetchedItem shouldNotBe null
             (fetchedItem is VaultLogin) shouldBe true
             fetchedItem as VaultLogin
-            fetchedItem.name shouldBe item.name
-            fetchedItem.password?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.notes?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.url shouldBe item.url
-            fetchedItem.user shouldBe item.user
+            fetchedItem.name shouldBe login.name
+            fetchedItem.password?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.url shouldBe login.url
+            fetchedItem.user shouldBe login.user
 
             // Change the master password and check the vault can still be read
             changeMasterPassword(masterPassword, newMasterPassword)
             listVaults() shouldHaveSize 1
-            fetchedItem = getVaultItem(itemId2, vault)
+            vault = listVaults().first()
+            fetchedItem = getVaultItem(loginId2, vault)
             fetchedItem shouldNotBe null
             (fetchedItem is VaultLogin) shouldBe true
             fetchedItem as VaultLogin
-            fetchedItem.name shouldBe item.name
-            fetchedItem.password?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.notes?.getValue() shouldBe AndroidTestData.PLAIN_TEXT
-            fetchedItem.url shouldBe item.url
-            fetchedItem.user shouldBe item.user
+            fetchedItem.name shouldBe login.name
+            fetchedItem.password?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.notes?.getValue() shouldBe TestData.PLAIN_TEXT
+            fetchedItem.url shouldBe login.url
+            fetchedItem.user shouldBe login.user
+
+            // Delete the credit card item
+            removeVaultItem(creditCardId, vault)
+            listVaultItems(vault) shouldHaveSize 2
+            getVaultItem(creditCardId, vault) shouldBe null
 
             // Delete the vault
             deleteVault(vaultId)
@@ -428,7 +514,7 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
             unlock(masterPassword, secretCode)
             isLocked() shouldBe false
 
-            val sudo = sudoClient.createSudo(AndroidTestData.SUDO)
+            val sudo = sudoClient.createSudo(TestData.SUDO)
 
             shouldNotThrow<SudoPasswordManagerException.VaultLockedException> {
                 createVault(sudo.id!!)
@@ -450,7 +536,7 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
             unlock(masterPassword, secretCode)
             isLocked() shouldBe false
 
-            val sudo = sudoClient.createSudo(AndroidTestData.SUDO)
+            val sudo = sudoClient.createSudo(TestData.SUDO)
 
             shouldNotThrow<SudoPasswordManagerException.VaultLockedException> {
                 createVault(sudo.id!!)

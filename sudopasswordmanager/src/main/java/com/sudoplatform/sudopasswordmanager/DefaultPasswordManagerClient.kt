@@ -21,14 +21,17 @@ import com.sudoplatform.sudopasswordmanager.datastore.DefaultVaultStore
 import com.sudoplatform.sudopasswordmanager.datastore.VaultProxy
 import com.sudoplatform.sudopasswordmanager.datastore.VaultStore
 import com.sudoplatform.sudopasswordmanager.datastore.vaultschema.VaultSchema
+import com.sudoplatform.sudopasswordmanager.entitlements.Entitlement
 import com.sudoplatform.sudopasswordmanager.entitlements.EntitlementState
 import com.sudoplatform.sudopasswordmanager.models.Vault
+import com.sudoplatform.sudopasswordmanager.models.VaultBankAccount
+import com.sudoplatform.sudopasswordmanager.models.VaultCreditCard
 import com.sudoplatform.sudopasswordmanager.models.VaultItem
 import com.sudoplatform.sudopasswordmanager.models.VaultLogin
 import com.sudoplatform.sudopasswordmanager.models.VaultOwner
+import com.sudoplatform.sudopasswordmanager.transform.EntitlementTransformer
 import com.sudoplatform.sudopasswordmanager.transform.MasterPasswordTransformer
 import com.sudoplatform.sudopasswordmanager.transform.VaultTransformer
-import com.sudoplatform.sudopasswordmanager.util.MAX_VAULTS_PER_SUDO
 import com.sudoplatform.sudopasswordmanager.util.SECURE_VAULT_AUDIENCE
 import com.sudoplatform.sudopasswordmanager.util.SUDO_SERVICE_ISSUER
 import com.sudoplatform.sudopasswordmanager.util.formatSecretCode
@@ -69,7 +72,7 @@ internal class DefaultPasswordManagerClient(
         private const val VAULTS_MUST_BE_UNLOCKED = "Vaults must be unlocked"
         private const val VAULT_MISSING_SECURE_KEY = "Vault is missing the secure key field. Vault is corrupt."
         private const val NO_ENTITLEMENTS_FROM_SERVER = "Unable to fetch entitlements from server"
-        private const val NO_SUDOS_FROM_SERVER = "Unable to fetch Sudos from server"
+        private const val UNSUPPORTED_VAULT_ITEM_TYPE = "Vault item is unsupported."
     }
 
     // Logged in/out session date
@@ -381,6 +384,12 @@ internal class DefaultPasswordManagerClient(
                 newPassword.toByteArray()
             )
             sessionData = session.copy(masterPassword = newPassword.toByteArray())
+
+            // Re-import the vaults to refresh the version numbers after the change password operation
+            vaultStore.removeAll()
+            vaultStore.importSecureVaults(
+                service.secureVaultClient.listVaults(session.keyDerivingKey, newPassword.toByteArray())
+            )
         } catch (e: Throwable) {
             logger.debug("error $e")
             throw interpretException(e)
@@ -400,13 +409,27 @@ internal class DefaultPasswordManagerClient(
             }
 
             // Add the new item to the vault store under the vault's key
-            val loginProxy = vaultFactory.createVaultLoginProxy(item as VaultLogin, vaultKey)
-            vaultStore.add(loginProxy, vault.id)
+            val itemProxyId: String
+            if (item is VaultLogin) {
+                val loginProxy = vaultFactory.createVaultLoginProxy(item, vaultKey)
+                vaultStore.add(loginProxy, vault.id)
+                itemProxyId = loginProxy.id
+            } else if (item is VaultCreditCard) {
+                val creditCardProxy = vaultFactory.createVaultCreditCardProxy(item, vaultKey)
+                vaultStore.add(creditCardProxy, vault.id)
+                itemProxyId = creditCardProxy.id
+            } else if (item is VaultBankAccount) {
+                val bankAccountProxy = vaultFactory.createVaultBankAccountProxy(item, vaultKey)
+                vaultStore.add(bankAccountProxy, vault.id)
+                itemProxyId = bankAccountProxy.id
+            } else {
+                throw SudoPasswordManagerException.InvalidFormatException(UNSUPPORTED_VAULT_ITEM_TYPE)
+            }
 
             // Update the vault
             update(vault)
 
-            return loginProxy.id
+            return itemProxyId
         } catch (e: Throwable) {
             logger.debug("error $e")
             throw interpretException(e)
@@ -428,8 +451,17 @@ internal class DefaultPasswordManagerClient(
                 throw SudoPasswordManagerException.InvalidVaultException(VAULT_MISSING_SECURE_KEY)
             }
 
-            return internalVault.vaultData.login.map {
-                vaultFactory.createVaultLogin(it, vaultKey)
+            with(internalVault.vaultData) {
+                val logins: List<VaultItem> = login.map {
+                    vaultFactory.createVaultLogin(it, vaultKey)
+                }
+                val creditCards: List<VaultItem> = creditCard.map {
+                    vaultFactory.createVaultCreditCard(it, vaultKey)
+                }
+                val bankAccounts: List<VaultItem> = bankAccount.map {
+                    vaultFactory.createVaultBankAccount(it, vaultKey)
+                }
+                return logins + creditCards + bankAccounts
             }
         } catch (e: Throwable) {
             logger.debug("error $e")
@@ -446,16 +478,26 @@ internal class DefaultPasswordManagerClient(
             val internalVault = vaultStore.getVault(vault.id)
                 ?: return null
 
-            val item = internalVault.vaultData.login.firstOrNull { it.id == id }
-                ?: return null
-
             val vaultKey = this.sessionData?.keyDerivingKey
             if (vaultKey == null) {
                 logger.debug(VAULT_MISSING_SECURE_KEY)
                 throw SudoPasswordManagerException.InvalidVaultException(VAULT_MISSING_SECURE_KEY)
             }
 
-            return vaultFactory.createVaultLogin(item, vaultKey)
+            val loginProxy = internalVault.vaultData.login.firstOrNull { it.id == id }
+            if (loginProxy != null) {
+                return vaultFactory.createVaultLogin(loginProxy, vaultKey)
+            }
+            val creditCardProxy = internalVault.vaultData.creditCard.firstOrNull { it.id == id }
+            if (creditCardProxy != null) {
+                return vaultFactory.createVaultCreditCard(creditCardProxy, vaultKey)
+            }
+            val bankAccountProxy = internalVault.vaultData.bankAccount.firstOrNull { it.id == id }
+            if (bankAccountProxy != null) {
+                return vaultFactory.createVaultBankAccount(bankAccountProxy, vaultKey)
+            }
+
+            return null
         } catch (e: Throwable) {
             logger.debug("error $e")
             throw interpretException(e)
@@ -474,10 +516,17 @@ internal class DefaultPasswordManagerClient(
                 throw SudoPasswordManagerException.InvalidVaultException(VAULT_MISSING_SECURE_KEY)
             }
 
-            // Convert [VaultLogin] to our vault store format
-            val proxy = vaultFactory.createVaultLoginProxy(item as VaultLogin, vaultKey)
-            vaultStore.update(proxy, vault.id)
+            if (item is VaultLogin) {
+                vaultStore.update(vaultFactory.createVaultLoginProxy(item, vaultKey), vault.id)
+            } else if (item is VaultCreditCard) {
+                vaultStore.update(vaultFactory.createVaultCreditCardProxy(item, vaultKey), vault.id)
+            } else if (item is VaultBankAccount) {
+                vaultStore.update(vaultFactory.createVaultBankAccountProxy(item, vaultKey), vault.id)
+            } else {
+                throw SudoPasswordManagerException.InvalidFormatException(UNSUPPORTED_VAULT_ITEM_TYPE)
+            }
         } catch (e: Throwable) {
+            e.printStackTrace()
             logger.debug("error $e")
             throw interpretException(e)
         }
@@ -489,7 +538,7 @@ internal class DefaultPasswordManagerClient(
                 throw SudoPasswordManagerException.VaultLockedException(VAULTS_MUST_BE_UNLOCKED)
             }
 
-            vaultStore.removeVaultLogin(id, vault.id)
+            vaultStore.removeVaultItem(id, vault.id)
             update(vault)
         } catch (e: Throwable) {
             logger.debug("error $e")
@@ -587,16 +636,21 @@ internal class DefaultPasswordManagerClient(
         }
     }
 
+    override suspend fun getEntitlement(): List<Entitlement> {
+        try {
+            val entitlementsSet = service.entitlementsClient.getEntitlements()
+                ?: throw SudoPasswordManagerException.FailedException(NO_ENTITLEMENTS_FROM_SERVER)
+            return EntitlementTransformer.transform(entitlementsSet)
+        } catch (e: Throwable) {
+            logger.debug("error $e")
+            throw interpretException(e)
+        }
+    }
+
     override suspend fun getEntitlementState(): List<EntitlementState> {
         try {
-            if (isLocked()) {
-                throw SudoPasswordManagerException.VaultLockedException(VAULTS_MUST_BE_UNLOCKED)
-            }
-
-            // Get entitlements
-            val set = service.entitlementsClient.getEntitlements()
-                ?: throw SudoPasswordManagerException.FailedException(NO_ENTITLEMENTS_FROM_SERVER)
-            val entitlementsList = set.entitlements
+            // Get entitlement
+            val entitlement = getEntitlement()
 
             // Get Vault metadata
             val vaultMetadata = service.secureVaultClient.listVaultsMetadataOnly()
@@ -604,7 +658,7 @@ internal class DefaultPasswordManagerClient(
             // Get Sudos
             val sudoList = service.profilesClient.listSudos(ListOption.REMOTE_ONLY)
 
-            return calculateEntitlementStates(sudoList, entitlementsList, vaultMetadata)
+            return calculateEntitlementStates(sudoList, entitlement, vaultMetadata)
         } catch (e: Throwable) {
             logger.debug("error $e")
             throw interpretException(e)
@@ -613,11 +667,11 @@ internal class DefaultPasswordManagerClient(
 
     private fun calculateEntitlementStates(
         sudos: List<Sudo>,
-        entitlements: Set<com.sudoplatform.sudoentitlements.types.Entitlement>,
+        entitlements: List<Entitlement>,
         vaultMetadata: List<VaultMetadata>
     ): List<EntitlementState> {
 
-        val maxVaultsPerSudoEntitlement = entitlements.firstOrNull { it.name == MAX_VAULTS_PER_SUDO }?.value ?: 0
+        val maxVaultsPerSudoEntitlement = entitlements.firstOrNull { it.name == Entitlement.Name.MAX_VAULTS_PER_SUDO }?.limit ?: 0
 
         // Create a histogram of each sudo's vault count.
         val vaultsWithSudoId = vaultMetadata.filter { it.sudoId() != null }
@@ -627,7 +681,7 @@ internal class DefaultPasswordManagerClient(
         for (sudo in sudos) {
             val id = sudo.id ?: continue
             val vaultCount = vaultsGroupedBySudoId[id]?.count() ?: 0
-            val entitlementState = EntitlementState(EntitlementState.Name.MAX_VAULTS_PER_SUDO, id, maxVaultsPerSudoEntitlement, vaultCount)
+            val entitlementState = EntitlementState(Entitlement.Name.MAX_VAULTS_PER_SUDO, id, maxVaultsPerSudoEntitlement, vaultCount)
             states.add(entitlementState)
         }
 

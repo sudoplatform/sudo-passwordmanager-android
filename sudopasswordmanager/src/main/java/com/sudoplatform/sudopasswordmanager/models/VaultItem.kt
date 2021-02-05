@@ -8,6 +8,9 @@ package com.sudoplatform.sudopasswordmanager.models
 
 import java.util.Date
 
+/**
+ * Items held in a [Vault] implement this interface.
+ */
 interface VaultItem {
     /** Unique identifier of this item */
     val id: String
@@ -15,6 +18,6 @@ interface VaultItem {
     /** Time created. Unix Time (seconds since epoch) */
     val createdAt: Date
 
-    /** Time created. Unix Time (seconds since epoch) */
+    /** Time updated. Unix Time (seconds since epoch) */
     val updatedAt: Date
 }

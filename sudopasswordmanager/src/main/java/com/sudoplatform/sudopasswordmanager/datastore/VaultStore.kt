@@ -17,6 +17,8 @@ internal typealias VaultLoginProxy = VaultSchema.VaultSchemaV1.Login
 internal typealias VaultNoteProxy = VaultSchema.VaultSchemaV1.SecureField
 internal typealias VaultPasswordProxy = VaultSchema.VaultSchemaV1.PasswordField
 internal typealias VaultSecureFieldProxy = VaultSchema.VaultSchemaV1.SecureField
+internal typealias VaultCreditCardProxy = VaultSchema.VaultSchemaV1.CreditCard
+internal typealias VaultBankAccountProxy = VaultSchema.VaultSchemaV1.BankAccount
 
 internal data class VaultProxy(
     /** Unique identifier of the vault storage record on the service */
@@ -58,8 +60,12 @@ internal interface VaultStore {
     fun deleteVault(id: String)
 
     fun add(login: VaultLoginProxy, id: String)
+    fun add(creditCard: VaultCreditCardProxy, id: String)
+    fun add(bankAccount: VaultBankAccountProxy, id: String)
 
     fun update(login: VaultLoginProxy, vaultId: String)
+    fun update(creditCard: VaultCreditCardProxy, vaultId: String)
+    fun update(bankAccount: VaultBankAccountProxy, vaultId: String)
 
-    fun removeVaultLogin(id: String, vaultId: String)
+    fun removeVaultItem(itemId: String, vaultId: String)
 }

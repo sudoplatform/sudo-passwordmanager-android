@@ -38,7 +38,9 @@ internal class SudoPasswordManagerClientUnlockTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -51,6 +53,7 @@ internal class SudoPasswordManagerClientUnlockTest : BaseTests() {
         verify(mockKeyStore).add(any(), anyString())
         verify(mockUserClient, times(2)).getUserName()
         verify(mockSecureVaultClient).listVaults(any(), any())
+        verify(mockVaultStore).importSecureVaults(any())
     }
 
     @Test
@@ -62,6 +65,7 @@ internal class SudoPasswordManagerClientUnlockTest : BaseTests() {
         verify(mockKeyStore).add(any(), anyString())
         verify(mockUserClient, times(2)).getUserName()
         verify(mockSecureVaultClient).listVaults(any(), any())
+        verify(mockVaultStore).importSecureVaults(any())
     }
 
     @Test

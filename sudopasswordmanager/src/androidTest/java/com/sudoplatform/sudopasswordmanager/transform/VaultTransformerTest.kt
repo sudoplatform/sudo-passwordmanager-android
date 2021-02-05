@@ -8,11 +8,12 @@ package com.sudoplatform.sudopasswordmanager.transform
 import android.content.Context
 import android.graphics.pdf.PdfDocument
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.sudoplatform.sudopasswordmanager.AndroidTestData
+import com.sudoplatform.sudopasswordmanager.TestData
 import com.sudoplatform.sudopasswordmanager.BaseIntegrationTest
 import com.sudoplatform.sudopasswordmanager.PasswordManagerRegistrationStatus
 import com.sudoplatform.sudopasswordmanager.SudoPasswordManagerClient
 import com.sudoplatform.sudopasswordmanager.crypto.DefaultCryptographyProvider
+import com.sudoplatform.sudopasswordmanager.entitlements.Entitlement
 import com.sudoplatform.sudopasswordmanager.entitlements.EntitlementState
 import com.sudoplatform.sudopasswordmanager.models.Vault
 import com.sudoplatform.sudopasswordmanager.models.VaultItem
@@ -121,6 +122,10 @@ class VaultTransformerTest : BaseIntegrationTest() {
             TODO("Not yet implemented")
         }
 
+        override suspend fun getEntitlement(): List<Entitlement> {
+            TODO("Not yet implemented")
+        }
+
         override suspend fun getEntitlementState(): List<EntitlementState> {
             TODO("Not yet implemented")
         }
@@ -138,11 +143,29 @@ class VaultTransformerTest : BaseIntegrationTest() {
     @Test
     fun shouldBeAbleTransformToAndFromLogin() {
         val vaultKey = cryptoProvider.generateKeyDerivingKey()
-        val loginProxy = vaultTransformer.createVaultLoginProxy(AndroidTestData.VAULT_LOGIN, vaultKey)
+        val loginProxy = vaultTransformer.createVaultLoginProxy(TestData.VAULT_LOGIN_ITEM, vaultKey)
         val login = vaultTransformer.createVaultLogin(loginProxy, vaultKey)
-        login.name shouldBe AndroidTestData.VAULT_LOGIN.name
-        login.user shouldBe AndroidTestData.VAULT_LOGIN.user
-        login.password?.getValue() shouldBe AndroidTestData.VAULT_LOGIN.password?.getValue()
-        login.notes?.getValue() shouldBe AndroidTestData.VAULT_LOGIN.notes?.getValue()
+        login.name shouldBe TestData.VAULT_LOGIN_ITEM.name
+        login.user shouldBe TestData.VAULT_LOGIN_ITEM.user
+        login.password?.getValue() shouldBe TestData.VAULT_LOGIN_ITEM.password?.getValue()
+        login.notes?.getValue() shouldBe TestData.VAULT_LOGIN_ITEM.notes?.getValue()
+    }
+
+    @Test
+    fun shouldBeAbleTransformToAndFromCreditCard() {
+        val vaultKey = cryptoProvider.generateKeyDerivingKey()
+        val creditCardProxy = vaultTransformer.createVaultCreditCardProxy(TestData.VAULT_CREDIT_CARD_ITEM, vaultKey)
+        val creditCard = vaultTransformer.createVaultCreditCard(creditCardProxy, vaultKey)
+        creditCard.name shouldBe TestData.VAULT_CREDIT_CARD_ITEM.name
+        creditCard.notes?.getValue() shouldBe TestData.VAULT_CREDIT_CARD_ITEM.notes?.getValue()
+    }
+
+    @Test
+    fun shouldBeAbleTransformToAndFromBankAccount() {
+        val vaultKey = cryptoProvider.generateKeyDerivingKey()
+        val bankAccountProxy = vaultTransformer.createVaultBankAccountProxy(TestData.VAULT_BANK_ACCOUNT_ITEM, vaultKey)
+        val bankAccount = vaultTransformer.createVaultBankAccount(bankAccountProxy, vaultKey)
+        bankAccount.name shouldBe TestData.VAULT_BANK_ACCOUNT_ITEM.name
+        bankAccount.notes?.getValue() shouldBe TestData.VAULT_BANK_ACCOUNT_ITEM.notes?.getValue()
     }
 }

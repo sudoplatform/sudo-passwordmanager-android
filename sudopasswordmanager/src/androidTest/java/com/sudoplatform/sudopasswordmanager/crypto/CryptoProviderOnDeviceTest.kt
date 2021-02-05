@@ -9,7 +9,7 @@ package com.sudoplatform.sudopasswordmanager.crypto
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.base.Stopwatch
-import com.sudoplatform.sudopasswordmanager.AndroidTestData.PLAIN_TEXT
+import com.sudoplatform.sudopasswordmanager.TestData.PLAIN_TEXT
 import com.sudoplatform.sudopasswordmanager.BaseIntegrationTest
 import io.kotlintest.shouldBe
 import kotlinx.coroutines.runBlocking

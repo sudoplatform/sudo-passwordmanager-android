@@ -37,7 +37,9 @@ internal class SudoPasswordManagerClientDeleteVaultTest : BaseTests() {
             mockProfilesClient,
             mockCryptographyProvider,
             mockKeyStore,
-            mockSecureVaultClient
+            mockSecureVaultClient,
+            mockVaultStore,
+            mockEntitlementsClient
         )
     }
 
@@ -51,6 +53,7 @@ internal class SudoPasswordManagerClientDeleteVaultTest : BaseTests() {
         passwordManager.deleteVault("id")
 
         verify(mockSecureVaultClient).deleteVault(anyString())
+        verify(mockVaultStore).deleteVault(anyString())
     }
 
     @Test
