@@ -7,6 +7,7 @@
 package com.sudoplatform.sudopasswordmanager
 
 import android.content.Context
+import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.sudoplatform.sudoentitlements.SudoEntitlementsClient
 import com.sudoplatform.sudokeymanager.KeyManagerFactory
@@ -41,7 +42,7 @@ abstract class BaseIntegrationTest {
     }
 
     protected val sudoClient by lazy {
-        val containerURI = context.cacheDir.toURI()
+        val containerURI = Uri.fromFile(context.cacheDir)
         SudoProfilesClient.builder(context, userClient, containerURI)
             .setLogger(logger)
             .build()
@@ -94,6 +95,10 @@ abstract class BaseIntegrationTest {
         }
         userClient.isSignedIn() shouldBe true
         entitlementsClient.redeemEntitlements()
+        // If userClient.reset has been called, reinstate the Sudo symmetric key
+        if (sudoClient.getSymmetricKeyId() == null) {
+            sudoClient.generateEncryptionKey()
+        }
     }
 
     protected fun clientConfigFilesPresent(): Boolean {

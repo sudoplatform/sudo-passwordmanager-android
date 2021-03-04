@@ -1,0 +1,8 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+com.sudoplatform.sudopasswordmanager
+com.sudoplatform.sudopasswordmanager.crypto
+com.sudoplatform.sudopasswordmanager.entitlements
+com.sudoplatform.sudopasswordmanager.models
+

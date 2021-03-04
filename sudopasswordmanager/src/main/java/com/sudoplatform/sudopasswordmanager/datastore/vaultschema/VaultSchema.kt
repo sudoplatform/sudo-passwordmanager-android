@@ -14,7 +14,7 @@ import com.sudoplatform.sudopasswordmanager.datastore.VaultProxy
 import com.sudoplatform.sudopasswordmanager.models.VaultOwner
 import com.sudoplatform.sudosecurevault.Owner
 import com.sudoplatform.sudosecurevault.Vault
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.nio.charset.Charset
 import java.util.Date
 

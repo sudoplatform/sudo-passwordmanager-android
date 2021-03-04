@@ -31,6 +31,7 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import timber.log.Timber
@@ -45,6 +46,7 @@ import java.util.UUID
  * @since 2020-09-29
  */
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
 
     private val masterPassword = UUID.randomUUID().toString()
@@ -77,6 +79,7 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         if (clientConfigFilesPresent()) {
             deleteAllSudos()
             passwordManagerClient.reset()
+            userClient.reset()
         }
         Timber.uprootAll()
     }

@@ -7,6 +7,7 @@
 package com.sudoplatform.sudopasswordmanager.samples
 
 import android.content.Context
+import android.net.Uri
 import com.nhaarman.mockitokotlin2.mock
 import com.sudoplatform.sudologging.AndroidUtilsLogDriver
 import com.sudoplatform.sudologging.LogLevel
@@ -35,7 +36,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.lang.RuntimeException
-import java.net.URI
 import java.util.Calendar
 
 /**
@@ -89,9 +89,8 @@ class Samples {
             .build()
 
         // Create an instance of SudoProfilesClient to perform creation, deletion and modification of Sudos.
-        val blobURI = URI(context.cacheDir.path)
-        val sudoProfilesClient = SudoProfilesClient
-            .builder(context, sudoUserClient, blobURI)
+        val blobURI = Uri.fromFile(context.cacheDir)
+        val sudoProfilesClient = SudoProfilesClient.builder(context, sudoUserClient, blobURI)
             .setLogger(logger)
             .build()
 

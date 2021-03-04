@@ -6,7 +6,7 @@
 package com.sudoplatform.sudopasswordmanager.entitlements
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * Data to represent the current state of the Entitlements for the Sudo Password Manager

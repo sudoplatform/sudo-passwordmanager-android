@@ -6,7 +6,7 @@
 package com.sudoplatform.sudopasswordmanager.models
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * An owner of a vault. The ownership is granted by a service known as the issuer.

@@ -58,14 +58,14 @@ internal class SudoPasswordManagerClientGetEntitlementTest : BaseTests() {
             )
         )
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 
     @Test
     fun `getEntitlement() should throw when entitlementsClient throws`() = runBlocking<Unit> {
 
         mockEntitlementsClient.stub {
-            onBlocking { getEntitlements() } doThrow SudoEntitlementsClient.EntitlementsException.FailedException("Mock")
+            onBlocking { getEntitlementsConsumption() } doThrow SudoEntitlementsClient.EntitlementsException.FailedException("Mock")
         }
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
@@ -73,21 +73,21 @@ internal class SudoPasswordManagerClientGetEntitlementTest : BaseTests() {
             passwordManager.getEntitlement()
         }
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 
     @Test
     fun `getEntitlement() should not throw when vaults are locked`() = runBlocking<Unit> {
         passwordManager.getEntitlement() shouldNotBe null
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 
     @Test
     fun `getEntitlement() should not block coroutine cancellation exception`() = runBlocking<Unit> {
 
         mockEntitlementsClient.stub {
-            onBlocking { getEntitlements() } doThrow CancellationException("Mock Cancellation Exception")
+            onBlocking { getEntitlementsConsumption() } doThrow CancellationException("Mock Cancellation Exception")
         }
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
@@ -95,6 +95,6 @@ internal class SudoPasswordManagerClientGetEntitlementTest : BaseTests() {
             passwordManager.getEntitlement()
         }
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 }

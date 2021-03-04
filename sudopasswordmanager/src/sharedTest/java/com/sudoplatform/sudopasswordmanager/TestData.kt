@@ -7,7 +7,10 @@
 package com.sudoplatform.sudopasswordmanager
 
 import com.sudoplatform.sudoentitlements.types.Entitlement
+import com.sudoplatform.sudoentitlements.types.EntitlementConsumption
+import com.sudoplatform.sudoentitlements.types.EntitlementsConsumption
 import com.sudoplatform.sudoentitlements.types.EntitlementsSet
+import com.sudoplatform.sudoentitlements.types.UserEntitlements
 import com.sudoplatform.sudopasswordmanager.datastore.VaultProxy
 import com.sudoplatform.sudopasswordmanager.datastore.vaultschema.VaultSchema
 import com.sudoplatform.sudopasswordmanager.models.Vault
@@ -116,5 +119,24 @@ internal object TestData {
         ),
         createdAt = Date(0),
         updatedAt = Date(1)
+    )
+    val USER_ENTITLEMENTS = UserEntitlements(
+        version = 1.0,
+        entitlementsSetName = "default",
+        entitlements = ENTITLEMENTS.entitlements.toList()
+    )
+    val ENTITLEMENTS_CONSUMPTION = EntitlementsConsumption(
+        entitlements = USER_ENTITLEMENTS,
+        consumption = listOf(
+            EntitlementConsumption(
+                name = MAX_VAULTS_PER_SUDO,
+                consumer = null,
+                value = 3,
+                consumed = 0,
+                available = 3,
+                firstConsumedAtEpochMs = null,
+                lastConsumedAtEpochMs = null
+            )
+        )
     )
 }

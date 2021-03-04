@@ -6,7 +6,7 @@
 
 package com.sudoplatform.sudopasswordmanager.transform
 
-import com.sudoplatform.sudoentitlements.types.EntitlementsSet
+import com.sudoplatform.sudoentitlements.types.EntitlementsConsumption
 import com.sudoplatform.sudopasswordmanager.entitlements.Entitlement
 import com.sudoplatform.sudopasswordmanager.util.MAX_VAULTS_PER_SUDO
 
@@ -20,8 +20,8 @@ internal object EntitlementTransformer {
     /**
      * Transform from the Sudo Platform entitlement types to the public types exported by this SDK.
      */
-    fun transform(entitlementsSet: EntitlementsSet): List<Entitlement> {
-        return entitlementsSet.entitlements.mapNotNull {
+    fun transform(entitlementsConsumption: EntitlementsConsumption): List<Entitlement> {
+        return entitlementsConsumption.entitlements.entitlements.mapNotNull {
             if (it.name == MAX_VAULTS_PER_SUDO) {
                 Entitlement(
                     name = Entitlement.Name.MAX_VAULTS_PER_SUDO,

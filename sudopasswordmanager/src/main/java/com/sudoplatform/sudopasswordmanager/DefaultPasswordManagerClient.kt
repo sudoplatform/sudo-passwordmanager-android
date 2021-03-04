@@ -638,9 +638,9 @@ internal class DefaultPasswordManagerClient(
 
     override suspend fun getEntitlement(): List<Entitlement> {
         try {
-            val entitlementsSet = service.entitlementsClient.getEntitlements()
-                ?: throw SudoPasswordManagerException.FailedException(NO_ENTITLEMENTS_FROM_SERVER)
-            return EntitlementTransformer.transform(entitlementsSet)
+            return EntitlementTransformer.transform(
+                service.entitlementsClient.getEntitlementsConsumption()
+            )
         } catch (e: Throwable) {
             logger.debug("error $e")
             throw interpretException(e)

@@ -141,9 +141,9 @@ interface SudoPasswordManagerClient {
 
             val secureVaultClient = sudoSecureVaultClient
                 ?: SudoSecureVaultClient.builder(context!!, sudoUserClient!!)
-                        .setLogger(logger)
-                        .setConfig(secureVaultConfig)
-                        .build()
+                    .setLogger(logger)
+                    .setConfig(secureVaultConfig)
+                    .build()
 
             val keyManager by lazy {
                 KeyManagerFactory(context!!).createAndroidKeyManager()

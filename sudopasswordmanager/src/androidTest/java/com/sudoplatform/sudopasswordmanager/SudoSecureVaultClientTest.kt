@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import timber.log.Timber
@@ -35,6 +36,7 @@ private const val KEY_SIZE_BITS = 256
  * @since 2020-10-20
  */
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class SudoSecureVaultClientTest : BaseIntegrationTest() {
 
     private val masterPassword = UUID.randomUUID().toString().toByteArray()
@@ -91,7 +93,7 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
     }
 
     private val jsonBlob = """
-            { 
+            {
                 "bankAccount": [],
                 "creditCard": [],
                 "generatedPassword": [],
@@ -99,7 +101,7 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
                 "revealKey": "key42",
                 "schemaVersion": 1.0
             }
-        """.trimIndent().toByteArray()
+    """.trimIndent().toByteArray()
 
     @Test
     fun completeFlowShouldSucceed() = runBlocking<Unit> {

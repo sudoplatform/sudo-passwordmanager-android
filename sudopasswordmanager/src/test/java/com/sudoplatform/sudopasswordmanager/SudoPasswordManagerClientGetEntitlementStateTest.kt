@@ -63,7 +63,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
             )
         )
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
         verify(mockProfilesClient).listSudos(any())
         verify(mockSecureVaultClient).listVaultsMetadataOnly()
     }
@@ -72,7 +72,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
     fun `getEntitlementState() should throw when entitlementsClient throws`() = runBlocking<Unit> {
 
         mockEntitlementsClient.stub {
-            onBlocking { getEntitlements() } doThrow SudoEntitlementsClient.EntitlementsException.FailedException("Mock")
+            onBlocking { getEntitlementsConsumption() } doThrow SudoEntitlementsClient.EntitlementsException.FailedException("Mock")
         }
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
@@ -80,7 +80,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
             passwordManager.getEntitlementState()
         }
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 
     @Test
@@ -95,7 +95,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
             passwordManager.getEntitlementState()
         }
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
         verify(mockSecureVaultClient).listVaultsMetadataOnly()
     }
 
@@ -103,7 +103,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
     fun `getEntitlementState() should not throw when vaults are locked`() = runBlocking<Unit> {
         passwordManager.getEntitlementState() shouldNotBe null
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
         verify(mockProfilesClient).listSudos(any())
         verify(mockSecureVaultClient).listVaultsMetadataOnly()
     }
@@ -112,7 +112,7 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
     fun `getEntitlementState() should not block coroutine cancellation exception`() = runBlocking<Unit> {
 
         mockEntitlementsClient.stub {
-            onBlocking { getEntitlements() } doThrow CancellationException("Mock Cancellation Exception")
+            onBlocking { getEntitlementsConsumption() } doThrow CancellationException("Mock Cancellation Exception")
         }
 
         passwordManager.setSessionData(MASTER_PASSWORD.toByteArray(), KEY_VALUE)
@@ -120,6 +120,6 @@ internal class SudoPasswordManagerClientGetEntitlementStateTest : BaseTests() {
             passwordManager.getEntitlementState()
         }
 
-        verify(mockEntitlementsClient).getEntitlements()
+        verify(mockEntitlementsClient).getEntitlementsConsumption()
     }
 }

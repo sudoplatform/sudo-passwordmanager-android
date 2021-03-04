@@ -16,6 +16,7 @@ import com.sudoplatform.sudologging.LogDriverInterface
 import com.sudoplatform.sudologging.LogLevel
 import com.sudoplatform.sudologging.Logger
 import com.sudoplatform.sudopasswordmanager.TestData.ENTITLEMENTS
+import com.sudoplatform.sudopasswordmanager.TestData.ENTITLEMENTS_CONSUMPTION
 import com.sudoplatform.sudopasswordmanager.TestData.KEY_VALUE
 import com.sudoplatform.sudopasswordmanager.TestData.OWNERSHIP_PROOF
 import com.sudoplatform.sudopasswordmanager.TestData.SECURE_VAULT
@@ -108,7 +109,7 @@ internal abstract class BaseTests : PropertyResetter by ActualPropertyResetter()
     protected val mockEntitlementsClient by before {
         mock<SudoEntitlementsClient>().stub {
             onBlocking { redeemEntitlements() } doReturn ENTITLEMENTS
-            onBlocking { getEntitlements() } doReturn ENTITLEMENTS
+            onBlocking { getEntitlementsConsumption() } doReturn ENTITLEMENTS_CONSUMPTION
         }
     }
 

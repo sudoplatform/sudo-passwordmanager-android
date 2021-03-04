@@ -52,7 +52,7 @@ internal class VaultStoreTest : BaseTests() {
                 "revealKey": "key42",
                 "schemaVersion": 1.0
             }
-        """.trimIndent().toByteArray()
+    """.trimIndent().toByteArray()
 
     private val secureVault = Vault(
         id = "id",

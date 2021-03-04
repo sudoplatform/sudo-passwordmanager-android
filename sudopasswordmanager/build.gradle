@@ -1,17 +1,17 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply plugin: 'org.owasp.dependencycheck'
 apply plugin: "com.cookpad.android.licensetools"
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 30
+        versionCode 2
+        versionName "1.5"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testApplicationId = "com.sudoplatform.sudopasswordmanager.test"
@@ -62,8 +62,13 @@ android {
     }
 }
 
+kotlin {
+    // Enable explicit API mode
+    explicitApi()
+}
+
 dependencies {
-    implementation 'com.nulab-inc:zxcvbn:1.3.0'
+    implementation 'com.nulab-inc:zxcvbn:1.3.6'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.core:core-ktx:1.3.2'
@@ -71,24 +76,23 @@ dependencies {
 
     // Sudo Platform SDKs
     implementation "com.sudoplatform:sudokeymanager:3.6.1"
-    implementation "com.sudoplatform:sudouser:8.2.1"
-    implementation "com.sudoplatform:sudokeymanager:3.6.1"
-    implementation "com.sudoplatform:sudoprofiles:3.1.10"
-    implementation "com.sudoplatform:sudosecurevault:3.0.0"
-    implementation "com.sudoplatform:sudoentitlements:1.0.0"
+    implementation 'com.sudoplatform:sudouser:9.2.0'
+    implementation 'com.sudoplatform:sudoprofiles:6.0.0'
+    implementation 'com.sudoplatform:sudosecurevault:4.0.1'
+    implementation 'com.sudoplatform:sudoentitlements:2.0.0'
 
-    testImplementation 'junit:junit:4.13.1'
-    testImplementation 'org.robolectric:robolectric:4.3.1'
-    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.3.0'
-    testImplementation "org.mockito:mockito-core:3.6.0"
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.5.1'
+    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.4.2'
+    testImplementation 'org.mockito:mockito-core:3.7.7'
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
-    testRuntimeOnly 'org.slf4j:slf4j-jdk14:1.7.26' // To suppress log noise
+    testRuntimeOnly 'org.slf4j:slf4j-jdk14:1.7.30' // To suppress log noise
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation "androidx.test:core:1.3.0"
-    androidTestImplementation "io.kotlintest:kotlintest-assertions:3.3.2"
-    androidTestImplementation "com.google.guava:guava:30.1-android"
+    androidTestImplementation 'io.kotlintest:kotlintest-assertions:3.4.2'
+    androidTestImplementation 'com.google.guava:guava:30.1-jre'
 }
 
 // Returns a list of `configurations` which should not be scanned for vulnerabilities
@@ -127,7 +131,6 @@ kotlinter {
     ignoreFailures = false
     reporters = ['checkstyle', 'plain']
     experimentalRules = false
-    fileBatchSize = 30
 }
 
 // Generate .editorconfig in the root directory of the project being built

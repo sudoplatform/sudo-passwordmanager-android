@@ -7,7 +7,7 @@
 package com.sudoplatform.sudopasswordmanager.models
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * A secured value, such as a note, credit card number or security code.
