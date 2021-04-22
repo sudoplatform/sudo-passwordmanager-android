@@ -7,11 +7,13 @@ package com.sudoplatform.sudopasswordmanager
 
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doThrow
+import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.sudoplatform.sudopasswordmanager.TestData.KEY_VALUE
 import com.sudoplatform.sudopasswordmanager.TestData.MASTER_PASSWORD
+import com.sudoplatform.sudopasswordmanager.datastore.vaultschema.VaultSchema
 import com.sudoplatform.sudosecurevault.exceptions.SudoSecureVaultException
 import io.kotlintest.shouldThrow
 import kotlinx.coroutines.runBlocking
@@ -51,7 +53,7 @@ internal class SudoPasswordManagerClientCreateVaultTest : BaseTests() {
         passwordManager.createVault("ownershipProof")
 
         verify(mockProfilesClient).getOwnershipProof(any(), anyString())
-        verify(mockSecureVaultClient).createVault(any(), any(), any(), anyString(), anyString())
+        verify(mockSecureVaultClient).createVault(any(), any(), any(), eq(VaultSchema.FORMAT_V1), anyString())
         verify(mockVaultStore).importVault(any())
     }
 
@@ -76,7 +78,7 @@ internal class SudoPasswordManagerClientCreateVaultTest : BaseTests() {
         }
 
         verify(mockProfilesClient).getOwnershipProof(any(), anyString())
-        verify(mockSecureVaultClient).createVault(any(), any(), any(), anyString(), anyString())
+        verify(mockSecureVaultClient).createVault(any(), any(), any(), eq(VaultSchema.FORMAT_V1), anyString())
     }
 
     @Test
@@ -92,6 +94,6 @@ internal class SudoPasswordManagerClientCreateVaultTest : BaseTests() {
         }
 
         verify(mockProfilesClient).getOwnershipProof(any(), anyString())
-        verify(mockSecureVaultClient).createVault(any(), any(), any(), anyString(), anyString())
+        verify(mockSecureVaultClient).createVault(any(), any(), any(), eq(VaultSchema.FORMAT_V1), anyString())
     }
 }

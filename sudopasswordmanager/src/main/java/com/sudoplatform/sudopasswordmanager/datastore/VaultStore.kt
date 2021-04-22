@@ -24,7 +24,7 @@ internal data class VaultProxy(
     /** Unique identifier of the vault storage record on the service */
     val secureVaultId: String = "",
     /** Blob format specifier. */
-    val blobFormat: VaultSchema = VaultSchema.latest(),
+    val blobFormat: String = VaultSchema.latest().format,
     /** Date/time at which the vault was created. */
     val createdAt: Date = Date(),
     /** Date/time at which the vault was last updated. */

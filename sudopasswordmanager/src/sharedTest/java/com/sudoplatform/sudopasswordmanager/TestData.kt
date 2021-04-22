@@ -52,7 +52,7 @@ internal object TestData {
         id = "id",
         owner = "owner",
         version = 1,
-        blobFormat = VaultSchema.FORMAT_V1,
+        blobFormat = VaultSchema.latest().format,
         createdAt = Date(0),
         updatedAt = Date(1),
         owners = SECURE_VAULT_OWNER
@@ -83,17 +83,30 @@ internal object TestData {
         id = "id",
         name = "Ted Bear",
         user = "tedbear",
-        type = VaultSchema.VaultSchemaV1.LoginType.LOGIN,
+        type = VaultSchema.VaultSchemaV1.VaultItemType.LOGIN,
         notes = null,
         password = null,
         url = null,
         createdAt = Date(0),
         updatedAt = Date(0)
     )
+    val CREDIT_CARD = VaultSchema.VaultSchemaV1.CreditCard(
+        id = "id",
+        name = "Teds Visa",
+        cardName = null,
+        cardNumber = null,
+        cardSecurityCode = null,
+        cardType = "VISA",
+        type = VaultSchema.VaultSchemaV1.VaultItemType.CREDIT_CARD,
+        notes = null,
+        cardExpiration = Date(1618963860340L),
+        createdAt = Date(0),
+        updatedAt = Date(0)
+    )
     // These are unmodifiable lists to catch any unintended modification
     val VAULT_SCHEMA = VaultSchema.VaultSchemaV1.Vault(
         bankAccount = Collections.unmodifiableList(mutableListOf()),
-        creditCard = Collections.unmodifiableList(mutableListOf()),
+        creditCard = Collections.unmodifiableList(mutableListOf(CREDIT_CARD)),
         generatedPassword = Collections.unmodifiableList(mutableListOf()),
         login = Collections.unmodifiableList(mutableListOf(LOGIN)),
         schemaVersion = 1.0

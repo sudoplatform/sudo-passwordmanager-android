@@ -8,7 +8,9 @@ package com.sudoplatform.sudopasswordmanager.models
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import kotlinx.android.parcel.RawValue
+import kotlinx.parcelize.RawValue
+
+typealias RevealFunction = ((String) -> String)
 
 /**
  * A secure field that contains a value that is held encrypted until it's needed.
@@ -17,7 +19,7 @@ import kotlinx.android.parcel.RawValue
 data class SecureFieldValue(
     val plainText: String? = null,
     val cipherText: String? = null,
-    val revealFunction: @RawValue ((String) -> String)? = null
+    val revealFunction: @RawValue RevealFunction? = null
 ) : Parcelable {
     fun reveal(): String {
         if (plainText != null) {

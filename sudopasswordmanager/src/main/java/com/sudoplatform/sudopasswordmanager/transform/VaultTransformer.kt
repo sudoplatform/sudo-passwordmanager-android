@@ -62,7 +62,7 @@ internal class VaultTransformer(
             login.name,
             notes,
             login.updatedAt,
-            VaultSchema.VaultSchemaV1.LoginType.LOGIN,
+            VaultSchema.VaultSchemaV1.VaultItemType.LOGIN,
             password,
             login.url?.toString(),
             login.user
@@ -97,7 +97,7 @@ internal class VaultTransformer(
             name = creditCard.name,
             notes = notes,
             updatedAt = creditCard.updatedAt,
-            type = VaultSchema.VaultSchemaV1.CreditCardType.CREDIT_CARD,
+            type = VaultSchema.VaultSchemaV1.VaultItemType.CREDIT_CARD,
             cardNumber = cardNumber,
             cardSecurityCode = securityCode,
             cardType = creditCard.cardType,
@@ -134,7 +134,7 @@ internal class VaultTransformer(
             name = bankAccount.name,
             notes = notes,
             updatedAt = bankAccount.updatedAt,
-            type = VaultSchema.VaultSchemaV1.BankAccountType.BANK_ACCOUNT,
+            type = VaultSchema.VaultSchemaV1.VaultItemType.BANK_ACCOUNT,
             accountNumber = accountNumber,
             accountPin = accountPin,
             accountType = bankAccount.accountType,
@@ -185,7 +185,7 @@ internal class VaultTransformer(
             val data = value.plainText?.toByteArray()
                 ?: throw SudoPasswordManagerException.InvalidFormatException("SecureFieldValue.plainText cannot be null")
 
-            val cipherText = Base64.encodeToString(this.crypto.encryptSecureField(data, vaultKey), Base64.DEFAULT)
+            val cipherText = Base64.encodeToString(this.crypto.encryptSecureField(data, vaultKey), Base64.NO_WRAP)
             return VaultSecureFieldProxy(cipherText)
         }
     }

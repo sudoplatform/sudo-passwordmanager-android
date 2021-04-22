@@ -208,7 +208,7 @@ internal class VaultStoreTest : BaseTests() {
             id = "id",
             owner = "owner",
             version = 1,
-            blobFormat = VaultSchema.FORMAT_V1,
+            blobFormat = VaultSchema.latest().toString(),
             blob = "some bad json".toByteArray(),
             createdAt = Date(0),
             updatedAt = Date(1),

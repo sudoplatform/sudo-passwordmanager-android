@@ -8,6 +8,7 @@ package com.sudoplatform.sudopasswordmanager
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sudoplatform.sudoconfigmanager.DefaultSudoConfigManager
+import com.sudoplatform.sudopasswordmanager.datastore.vaultschema.VaultSchema
 import com.sudoplatform.sudopasswordmanager.util.SECURE_VAULT_AUDIENCE
 import com.sudoplatform.sudopasswordmanager.util.SUDO_SERVICE_ISSUER
 import com.sudoplatform.sudoprofiles.Sudo
@@ -21,7 +22,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import timber.log.Timber
@@ -36,7 +36,6 @@ private const val KEY_SIZE_BITS = 256
  * @since 2020-10-20
  */
 @RunWith(AndroidJUnit4::class)
-@Ignore
 class SudoSecureVaultClientTest : BaseIntegrationTest() {
 
     private val masterPassword = UUID.randomUUID().toString().toByteArray()
@@ -124,10 +123,10 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
             val sudo = sudoClient.createSudo(TestData.SUDO)
             val ownershipProof = getOwnershipProof(sudo)
 
-            val vaultMetadata = createVault(keyDerivingKey, masterPassword, jsonBlob, "json", ownershipProof)
+            val vaultMetadata = createVault(keyDerivingKey, masterPassword, jsonBlob, VaultSchema.latest().format, ownershipProof)
             with(vaultMetadata) {
                 id shouldNotBe ""
-                blobFormat shouldBe "json"
+                blobFormat shouldBe "com.sudoplatform.passwordmanager.vault.v1"
                 owners shouldHaveSize 2
                 createdAt.time shouldBeGreaterThan 0L
                 updatedAt.time shouldBeGreaterThan 0L
@@ -188,7 +187,7 @@ class SudoSecureVaultClientTest : BaseIntegrationTest() {
             deletedVault shouldNotBe null
             with(deletedVault!!) {
                 id shouldNotBe ""
-                blobFormat shouldBe "json"
+                blobFormat shouldBe "com.sudoplatform.passwordmanager.vault.v1"
                 owners shouldHaveSize 2
                 val sudoOwner = owners.find { it.issuer == SUDO_SERVICE_ISSUER }
                 sudoOwner shouldNotBe null

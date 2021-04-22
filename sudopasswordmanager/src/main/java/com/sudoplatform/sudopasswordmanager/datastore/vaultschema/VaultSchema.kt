@@ -9,7 +9,8 @@ package com.sudoplatform.sudopasswordmanager.datastore.vaultschema
 import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.sudoplatform.sudopasswordmanager.datastore.VaultProxy
 import com.sudoplatform.sudopasswordmanager.models.VaultOwner
 import com.sudoplatform.sudosecurevault.Owner
@@ -38,7 +39,11 @@ internal sealed class VaultSchema {
         }
     }
 
-    class V1 : VaultSchema()
+    abstract val format: String
+
+    class V1 : VaultSchema() {
+        override val format = FORMAT_V1
+    }
 
     fun decodeSecureVault(vault: Vault): VaultProxy {
         when (this) {
@@ -47,7 +52,7 @@ internal sealed class VaultSchema {
 
                 return VaultProxy(
                     vault.id,
-                    latest(),
+                    latest().format,
                     vault.createdAt,
                     vault.updatedAt,
                     vault.version,
@@ -92,7 +97,7 @@ internal sealed class VaultSchema {
             var name: String,
             var notes: SecureField?,
             var updatedAt: Date,
-            var type: BankAccountType,
+            var type: VaultItemType,
             var accountNumber: SecureField?,
             var accountPin: SecureField?,
             var accountType: String?,
@@ -109,8 +114,12 @@ internal sealed class VaultSchema {
         data class SecureField(var secureValue: String) : Parcelable
 
         @Keep
-        enum class BankAccountType {
-            BANK_ACCOUNT
+        enum class VaultItemType {
+            BANK_ACCOUNT,
+            CREDIT_CARD,
+            GENERATED_PASSWORD,
+            LOGIN,
+            UNKNOWN
         }
 
         @Keep
@@ -121,18 +130,13 @@ internal sealed class VaultSchema {
             var name: String,
             var notes: SecureField?,
             var updatedAt: Date,
-            var type: CreditCardType,
+            var type: VaultItemType,
             var cardExpiration: Date?,
             var cardName: String?,
             var cardNumber: SecureField?,
             var cardSecurityCode: SecureField?,
             var cardType: String?
         ) : Parcelable
-
-        @Keep
-        enum class CreditCardType {
-            CREDIT_CARD
-        }
 
         @Keep
         @Parcelize
@@ -142,7 +146,7 @@ internal sealed class VaultSchema {
             var name: String,
             var notes: SecureField?,
             var updatedAt: Date,
-            var type: GeneratedPasswordType,
+            var type: VaultItemType,
             var password: PasswordField,
             var url: String?
         ) : Parcelable
@@ -156,11 +160,6 @@ internal sealed class VaultSchema {
         ) : Parcelable
 
         @Keep
-        enum class GeneratedPasswordType {
-            GENERATED_PASSWORD
-        }
-
-        @Keep
         @Parcelize
         data class Login(
             var createdAt: Date,
@@ -168,29 +167,10 @@ internal sealed class VaultSchema {
             var name: String,
             var notes: SecureField?,
             var updatedAt: Date,
-            var type: LoginType,
+            var type: VaultItemType,
             var password: PasswordField?,
             var url: String?,
             var user: String?
-        ) : Parcelable
-
-        @Keep
-        enum class LoginType {
-            LOGIN
-        }
-
-        @Keep
-        @Parcelize
-        data class VaultItem(
-            val createdAt: Date,
-            val id: String,
-            val notes: Notes?,
-            val password: Password?,
-            val previousPasswords: List<Password>,
-            val type: VaultType,
-            val updatedAt: Date,
-            val url: String?,
-            val user: String?
         ) : Parcelable
 
         @Keep
@@ -212,12 +192,12 @@ internal sealed class VaultSchema {
             val value: VaultSecureField
         ) : Parcelable
 
-        @Keep
-        enum class VaultType {
-            LOGIN;
+        private val gson by lazy {
+            GsonBuilder()
+                .registerTypeAdapter(object : TypeToken<Date>() {}.type, DateTypeConverter())
+                .registerTypeAdapter(object : TypeToken<VaultItemType>() {}.type, VaultItemTypeConverter())
+                .create()
         }
-
-        private val gson by lazy { Gson() }
 
         fun encode(vault: VaultSchemaV1.Vault): ByteArray {
             val json = gson.toJson(vault, Vault::class.java)

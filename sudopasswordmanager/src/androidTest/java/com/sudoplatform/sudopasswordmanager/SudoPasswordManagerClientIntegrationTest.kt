@@ -31,7 +31,6 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import timber.log.Timber
@@ -46,7 +45,6 @@ import java.util.UUID
  * @since 2020-09-29
  */
 @RunWith(AndroidJUnit4::class)
-@Ignore
 class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
 
     private val masterPassword = UUID.randomUUID().toString()
@@ -56,7 +54,7 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
     private lateinit var passwordManagerClient: SudoPasswordManagerClient
 
     @Before
-    fun init() {
+    fun init() = runBlocking {
         Timber.plant(Timber.DebugTree())
 
         if (clientConfigFilesPresent()) {
@@ -66,6 +64,14 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
                 .setSudoProfilesClient(sudoClient)
                 .setLogger(logger)
                 .build()
+
+            // Reset all the clients
+            passwordManagerClient.reset()
+            sudoClient.reset()
+            userClient.reset()
+            if (sudoClient.getSymmetricKeyId() == null) {
+                sudoClient.generateEncryptionKey()
+            }
         }
 
         // remove rescue kit pdf from cache dir
@@ -151,8 +157,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
-
             signInAndRegisterUser()
 
             getRegistrationStatus() shouldBe PasswordManagerRegistrationStatus.NOT_REGISTERED
@@ -179,8 +183,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
-
             signInAndRegisterUser()
 
             getRegistrationStatus() shouldBe PasswordManagerRegistrationStatus.NOT_REGISTERED
@@ -208,8 +210,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
-
             signInAndRegisterUser()
 
             getRegistrationStatus() shouldBe PasswordManagerRegistrationStatus.NOT_REGISTERED
@@ -233,8 +233,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
-
             // Register and sign in the user
             signInAndRegisterUser()
             userClient.isSignedIn() shouldBe true
@@ -449,7 +447,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             getSecretCode() shouldBe null
@@ -471,7 +468,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -489,7 +485,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -509,7 +504,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -531,7 +525,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -557,7 +550,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -586,7 +578,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -614,7 +605,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)
@@ -636,7 +626,6 @@ class SudoPasswordManagerClientIntegrationTest : BaseIntegrationTest() {
         assumeTrue(clientConfigFilesPresent())
 
         with(passwordManagerClient) {
-            reset()
             signInAndRegisterUser()
 
             register(masterPassword)

@@ -274,7 +274,7 @@ internal class DefaultPasswordManagerClient(
                 sessionKey.keyDerivingKey,
                 sessionKey.masterPassword,
                 blob,
-                newVault.blobFormat.toString(),
+                newVault.blobFormat,
                 ownershipProof
             )
 
@@ -576,6 +576,10 @@ internal class DefaultPasswordManagerClient(
                 else
                     SudoPasswordManagerException.FailedException("Network failure", exception)
             }
+            is SudoSecureVaultException.NotSignedInException,
+            is SudoSecureVaultException.NotRegisteredException,
+            is SudoSecureVaultException.NotAuthorizedException ->
+                SudoPasswordManagerException.UnauthorizedUserException("Secure Vault unauthorized error", exception)
             is SudoSecureVaultException -> SudoPasswordManagerException.FailedException("Secure vault client error", exception)
             is SudoEntitlementsClient.EntitlementsException -> SudoPasswordManagerException.FailedException(
                 "Entitlements client error",
