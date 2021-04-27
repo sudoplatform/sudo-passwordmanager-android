@@ -8,7 +8,6 @@ buildscript {
         google()
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
-        jcenter()
     }
     dependencies {
         // Using 4.0.x because 4.1.x causes problems with code coverage collection. There is
@@ -16,7 +15,7 @@ buildscript {
         // which leads to the error "Please supply original non-instrumented classes"
         classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'org.owasp:dependency-check-gradle:6.1.1'
+        classpath 'org.owasp:dependency-check-gradle:6.1.5'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.2"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         if (project.file("${rootProject.projectDir}/util/sonarqube.gradle").exists()) {
@@ -36,7 +35,6 @@ allprojects {
         google()
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
-        jcenter()
     }
 }
 

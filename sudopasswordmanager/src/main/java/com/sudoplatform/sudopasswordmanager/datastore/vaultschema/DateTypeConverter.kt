@@ -27,7 +27,7 @@ import java.util.Date
 internal class DateTypeConverter : JsonSerializer<Date>, JsonDeserializer<Date> {
 
     override fun serialize(src: Date, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-        var dateTimeString = Instant.ofEpochMilli(src.time ?: 0L).toString()
+        var dateTimeString = Instant.ofEpochMilli(src.time).toString()
         if (dateTimeString.contains(Regex(":[0-9][0-9]Z"))) {
             // Date time string lacks the milliseconds part probably because it's zero.
             // It must be added otherwise iOS refuses to parse it.

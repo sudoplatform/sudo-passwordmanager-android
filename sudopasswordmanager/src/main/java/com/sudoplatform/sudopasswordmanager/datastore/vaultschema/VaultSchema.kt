@@ -19,10 +19,12 @@ import kotlinx.parcelize.Parcelize
 import java.nio.charset.Charset
 import java.util.Date
 
+@Keep
 internal sealed class VaultSchema {
 
     companion object {
 
+        @Keep
         @VisibleForTesting
         const val FORMAT_V1 = "com.sudoplatform.passwordmanager.vault.v1"
 
@@ -41,6 +43,7 @@ internal sealed class VaultSchema {
 
     abstract val format: String
 
+    @Keep
     class V1 : VaultSchema() {
         override val format = FORMAT_V1
     }
@@ -71,12 +74,11 @@ internal sealed class VaultSchema {
 
     fun encodeVaultWithLatestSchema(vault: VaultProxy): ByteArray {
         val vaultData = vault.vaultData
-        // vaultData.updatedAt = Date()
-
         val blob = VaultSchemaV1().encode(vaultData)
         return blob
     }
 
+    @Keep
     class VaultSchemaV1 {
 
         @Keep

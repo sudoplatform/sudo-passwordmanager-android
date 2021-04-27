@@ -349,7 +349,7 @@ internal class DefaultPasswordManagerClient(
                 vaultProxy.secureVaultId,
                 vaultProxy.version,
                 vaultData,
-                vaultProxy.blobFormat.toString()
+                vaultProxy.blobFormat
             )
 
             // Update the vault data version
