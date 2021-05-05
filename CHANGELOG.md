@@ -1,3 +1,27 @@
+## 1.6.6
+
+  Released May 5, 2021.
+
+  ### New
+
+  - None.
+
+  ### Fixed
+
+  - Fixed a publishing script error.
+
+## 1.6.5
+
+  Released May 5, 2021.
+
+  ### New
+
+  - None.
+
+  ### Fixed
+
+  - Corrected the link to the reference documentation.
+
 ## 1.6.4
 
   Released Apr 27, 2021.
