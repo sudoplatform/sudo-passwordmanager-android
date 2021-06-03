@@ -452,15 +452,16 @@ internal class DefaultPasswordManagerClient(
             }
 
             with(internalVault.vaultData) {
-                val logins: List<VaultItem> = login.map {
+                val logins: List<VaultItem> = login?.map {
                     vaultFactory.createVaultLogin(it, vaultKey)
-                }
-                val creditCards: List<VaultItem> = creditCard.map {
+                } ?: emptyList()
+                val creditCards: List<VaultItem> = creditCard?.map {
                     vaultFactory.createVaultCreditCard(it, vaultKey)
-                }
-                val bankAccounts: List<VaultItem> = bankAccount.map {
+                } ?: emptyList()
+                val bankAccounts: List<VaultItem> = bankAccount?.map {
                     vaultFactory.createVaultBankAccount(it, vaultKey)
-                }
+                } ?: emptyList()
+
                 return logins + creditCards + bankAccounts
             }
         } catch (e: Throwable) {
@@ -484,15 +485,15 @@ internal class DefaultPasswordManagerClient(
                 throw SudoPasswordManagerException.InvalidVaultException(VAULT_MISSING_SECURE_KEY)
             }
 
-            val loginProxy = internalVault.vaultData.login.firstOrNull { it.id == id }
+            val loginProxy = internalVault.vaultData.login?.firstOrNull { it.id == id }
             if (loginProxy != null) {
                 return vaultFactory.createVaultLogin(loginProxy, vaultKey)
             }
-            val creditCardProxy = internalVault.vaultData.creditCard.firstOrNull { it.id == id }
+            val creditCardProxy = internalVault.vaultData.creditCard?.firstOrNull { it.id == id }
             if (creditCardProxy != null) {
                 return vaultFactory.createVaultCreditCard(creditCardProxy, vaultKey)
             }
-            val bankAccountProxy = internalVault.vaultData.bankAccount.firstOrNull { it.id == id }
+            val bankAccountProxy = internalVault.vaultData.bankAccount?.firstOrNull { it.id == id }
             if (bankAccountProxy != null) {
                 return vaultFactory.createVaultBankAccount(bankAccountProxy, vaultKey)
             }

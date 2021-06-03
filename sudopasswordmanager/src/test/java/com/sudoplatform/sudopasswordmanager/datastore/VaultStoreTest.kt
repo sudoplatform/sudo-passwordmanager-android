@@ -5,7 +5,7 @@
  */
 package com.sudoplatform.sudopasswordmanager.datastore
 
-import com.nhaarman.mockitokotlin2.times
+import org.mockito.kotlin.times
 import com.sudoplatform.sudopasswordmanager.BaseTests
 import com.sudoplatform.sudopasswordmanager.util.SUDO_SERVICE_ISSUER
 import com.sudoplatform.sudopasswordmanager.SudoPasswordManagerException

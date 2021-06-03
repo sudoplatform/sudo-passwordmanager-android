@@ -24,7 +24,7 @@
                 ]]></notes>
         <cve>CVE-2020-29582</cve>
     </suppress>
-    <suppress until="2021-05-15">
+    <suppress until="2021-06-30">
         <notes>
             <![CDATA[
             Vulnerability is a comparison error in OpenBSDBCrypt.checkPassword(). checkPassword is not used.

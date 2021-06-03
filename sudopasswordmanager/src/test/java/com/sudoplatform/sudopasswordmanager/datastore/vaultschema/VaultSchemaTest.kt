@@ -32,7 +32,7 @@ internal class VaultSchemaTest : BaseTests() {
     }
 
     @Test
-    fun `encodes correct date format format`() {
+    fun `encodes correct date format`() {
         val encodedVaultProxyBytes = VaultSchema.latest().encodeVaultWithLatestSchema(makeVaultProxy())
         val encodedVaultProxyJson = String(encodedVaultProxyBytes)
         println(encodedVaultProxyJson)
@@ -40,18 +40,27 @@ internal class VaultSchemaTest : BaseTests() {
     }
 
     @Test
-    fun `decodes correct date format format`() {
+    fun `decodes correct date format`() {
         val decodedVaultProxy = VaultSchema.latest().decodeSecureVault(makeVault())
-        with(decodedVaultProxy.vaultData.login[0]) {
+        with(decodedVaultProxy.vaultData.login!![0]) {
             createdAt.time shouldBe 0L
             updatedAt.time shouldBe 1618963860340L
             type shouldBe VaultSchema.VaultSchemaV1.VaultItemType.LOGIN
         }
-        with(decodedVaultProxy.vaultData.bankAccount[0]) {
+        with(decodedVaultProxy.vaultData.bankAccount!![0]) {
             createdAt.time shouldBe 0L
             updatedAt.time shouldBe 1618963860340L
             type shouldBe VaultSchema.VaultSchemaV1.VaultItemType.BANK_ACCOUNT
         }
+    }
+
+    // Inspired by PWMC-558
+    @Test
+    fun `decodeSecureVault handles vault with null collections`() {
+        val decodedVaultProxy = VaultSchema.latest().decodeSecureVault(makeVaultWithNullCollections())
+        decodedVaultProxy.vaultData.login shouldBe null
+        decodedVaultProxy.vaultData.bankAccount shouldBe null
+        decodedVaultProxy.vaultData.creditCard shouldBe null
     }
 
     private fun makeVault() =
@@ -107,4 +116,23 @@ internal class VaultSchemaTest : BaseTests() {
             vaultData = TestData.VAULT_SCHEMA,
             owners = TestData.OWNERS
         )
+
+    private fun makeVaultWithNullCollections() =
+        com.sudoplatform.sudosecurevault.Vault(
+            id = UUID.randomUUID().toString(),
+            owner = "owner",
+            version = 1,
+            blobFormat = VaultSchema.latest().format,
+            createdAt = Date(0L),
+            updatedAt = Date(1L),
+            owners = listOf(Owner("ownerId", "issuer")),
+            blob = vaultBlobJsonNullCollections.toByteArray()
+        )
+
+    private val vaultBlobJsonNullCollections = """
+        {
+            "generatedPassword":[],
+            "schemaVersion":1.0
+        }
+    """.trimIndent()
 }

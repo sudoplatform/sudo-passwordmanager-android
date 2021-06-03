@@ -1,3 +1,16 @@
+## 1.6.7
+
+  Released Jun 4, 2021.
+
+  ### New
+
+  - None.
+
+  ### Fixed
+
+  - Dependency updates.
+  - Improved cross platform compatibility with the web extension. 
+
 ## 1.6.6
 
   Released May 5, 2021.

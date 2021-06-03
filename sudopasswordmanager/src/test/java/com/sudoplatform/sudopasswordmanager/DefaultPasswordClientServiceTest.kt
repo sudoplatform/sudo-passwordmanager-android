@@ -5,8 +5,8 @@
  */
 package com.sudoplatform.sudopasswordmanager
 
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import com.sudoplatform.sudopasswordmanager.TestData.KEY_VALUE
 import com.sudoplatform.sudopasswordmanager.TestData.USER_ID
 import io.kotlintest.shouldBe

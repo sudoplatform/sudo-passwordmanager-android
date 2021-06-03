@@ -5,10 +5,10 @@
  */
 package com.sudoplatform.sudopasswordmanager
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import io.kotlintest.matchers.string.shouldEndWith
 import io.kotlintest.shouldBe
 import kotlinx.coroutines.runBlocking

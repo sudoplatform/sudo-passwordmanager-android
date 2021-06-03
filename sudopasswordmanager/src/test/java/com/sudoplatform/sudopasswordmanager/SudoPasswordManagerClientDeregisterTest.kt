@@ -5,11 +5,11 @@
  */
 package com.sudoplatform.sudopasswordmanager
 
-import com.nhaarman.mockitokotlin2.atLeastOnce
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import com.sudoplatform.sudosecurevault.exceptions.SudoSecureVaultException
 import io.kotlintest.shouldThrow
 import kotlinx.coroutines.runBlocking

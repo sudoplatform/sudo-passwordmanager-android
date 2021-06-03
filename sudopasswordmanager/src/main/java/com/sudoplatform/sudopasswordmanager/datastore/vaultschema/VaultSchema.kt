@@ -84,10 +84,10 @@ internal sealed class VaultSchema {
         @Keep
         @Parcelize
         data class Vault(
-            var bankAccount: MutableList<BankAccount>,
-            var creditCard: MutableList<CreditCard>,
-            var generatedPassword: MutableList<GeneratedPassword>,
-            var login: MutableList<Login>,
+            var bankAccount: MutableList<BankAccount>?,
+            var creditCard: MutableList<CreditCard>?,
+            var generatedPassword: MutableList<GeneratedPassword>?,
+            var login: MutableList<Login>?,
             var schemaVersion: Double
         ) : Parcelable
 

@@ -55,13 +55,13 @@ internal class DefaultVaultStore : VaultStore {
     // Defensive copy of the vault
     private fun defensiveCopyOf(vault: VaultProxy): VaultProxy {
         val logins = mutableListOf<VaultSchema.VaultSchemaV1.Login>().apply {
-            addAll(vault.vaultData.login)
+            vault.vaultData.login?.let { addAll(it) }
         }
         val cards = mutableListOf<VaultSchema.VaultSchemaV1.CreditCard>().apply {
-            addAll(vault.vaultData.creditCard)
+            vault.vaultData.creditCard?.let { addAll(it) }
         }
         val banks = mutableListOf<VaultSchema.VaultSchemaV1.BankAccount>().apply {
-            addAll(vault.vaultData.bankAccount)
+            vault.vaultData.bankAccount?.let { addAll(it) }
         }
         val vaultData = vault.vaultData.copy(
             bankAccount = banks,
@@ -110,7 +110,7 @@ internal class DefaultVaultStore : VaultStore {
     override fun add(login: VaultLoginProxy, id: String) {
         synchronized(vaults) {
             val vault = vaults[id] ?: throw SudoPasswordManagerException.VaultNotFoundException()
-            vault.vaultData.login.add(login)
+            vault.vaultData.add(login)
             vaults[id] = vault
         }
     }
@@ -118,7 +118,7 @@ internal class DefaultVaultStore : VaultStore {
     override fun add(creditCard: VaultCreditCardProxy, id: String) {
         synchronized(vaults) {
             val vault = vaults[id] ?: throw SudoPasswordManagerException.VaultNotFoundException()
-            vault.vaultData.creditCard.add(creditCard)
+            vault.vaultData.add(creditCard)
             vaults[id] = vault
         }
     }
@@ -126,7 +126,7 @@ internal class DefaultVaultStore : VaultStore {
     override fun add(bankAccount: VaultBankAccountProxy, id: String) {
         synchronized(vaults) {
             val vault = vaults[id] ?: throw SudoPasswordManagerException.VaultNotFoundException()
-            vault.vaultData.bankAccount.add(bankAccount)
+            vault.vaultData.add(bankAccount)
             vaults[id] = vault
         }
     }
@@ -138,8 +138,8 @@ internal class DefaultVaultStore : VaultStore {
             val mutableLogin = login
             mutableLogin.updatedAt = Date()
 
-            vault.vaultData.login.removeAll { it.id == login.id }
-            vault.vaultData.login.add(mutableLogin)
+            vault.vaultData.login?.removeAll { it.id == login.id }
+            vault.vaultData.add(mutableLogin)
             vaults[vaultId] = vault
         }
     }
@@ -151,8 +151,8 @@ internal class DefaultVaultStore : VaultStore {
             val mutableCreditCard = creditCard
             mutableCreditCard.updatedAt = Date()
 
-            vault.vaultData.creditCard.removeAll { it.id == creditCard.id }
-            vault.vaultData.creditCard.add(mutableCreditCard)
+            vault.vaultData.creditCard?.removeAll { it.id == creditCard.id }
+            vault.vaultData.add(mutableCreditCard)
             vaults[vaultId] = vault
         }
     }
@@ -164,8 +164,8 @@ internal class DefaultVaultStore : VaultStore {
             val mutableBankAccount = bankAccount
             mutableBankAccount.updatedAt = Date()
 
-            vault.vaultData.bankAccount.removeAll { it.id == bankAccount.id }
-            vault.vaultData.bankAccount.add(mutableBankAccount)
+            vault.vaultData.bankAccount?.removeAll { it.id == bankAccount.id }
+            vault.vaultData.add(mutableBankAccount)
             vaults[vaultId] = vault
         }
     }
@@ -174,11 +174,35 @@ internal class DefaultVaultStore : VaultStore {
         synchronized(vaults) {
             val vault = vaults[vaultId] ?: throw SudoPasswordManagerException.VaultNotFoundException()
             with(vault.vaultData) {
-                login.removeAll { it.id == itemId }
-                creditCard.removeAll { it.id == itemId }
-                bankAccount.removeAll { it.id == itemId }
+                login?.removeAll { it.id == itemId }
+                creditCard?.removeAll { it.id == itemId }
+                bankAccount?.removeAll { it.id == itemId }
             }
             vaults[vaultId] = vault
+        }
+    }
+
+    private fun VaultSchema.VaultSchemaV1.Vault.add(loginToAdd: VaultSchema.VaultSchemaV1.Login?) {
+        if (loginToAdd != null) {
+            val logins = this.login ?: mutableListOf()
+            logins.add(loginToAdd)
+            this.login = logins
+        }
+    }
+
+    private fun VaultSchema.VaultSchemaV1.Vault.add(cardToAdd: VaultSchema.VaultSchemaV1.CreditCard?) {
+        if (cardToAdd != null) {
+            val cards = this.creditCard ?: mutableListOf()
+            cards.add(cardToAdd)
+            this.creditCard = cards
+        }
+    }
+
+    private fun VaultSchema.VaultSchemaV1.Vault.add(accountToAdd: VaultSchema.VaultSchemaV1.BankAccount?) {
+        if (accountToAdd != null) {
+            val accounts = this.bankAccount ?: mutableListOf()
+            accounts.add(accountToAdd)
+            this.bankAccount = accounts
         }
     }
 
