@@ -1,3 +1,27 @@
+## 1.6.9
+
+  Released Jun 24, 2021.
+
+  ### New
+
+  - None.
+
+  ### Fixed
+
+  - When unlocking allow a secret code that contains spaces instead of hyphens.
+
+## 1.6.8
+
+  Released Jun 15, 2021.
+
+  ### New
+
+  - None.
+
+  ### Fixed
+
+  - Update the template used to generate the Rescue Kit PDF.
+
 ## 1.6.7
 
   Released Jun 4, 2021.

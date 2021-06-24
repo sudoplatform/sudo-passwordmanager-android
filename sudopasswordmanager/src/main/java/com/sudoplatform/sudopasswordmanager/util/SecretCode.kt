@@ -40,11 +40,11 @@ internal fun formatSecretCode(secretCode: String): String? {
  * (e.g. hash of user subject) metadata to the front of the secret code for support purposes.
  */
 internal fun parseSecretCode(secretCode: String): ByteArray? {
-    val hexString = secretCode.replace("-", "")
-    if (hexString.length >= KDK_LENGTH) {
+    val hexString = secretCode.replace(Regex("[-, ]"), "")
+    return if (hexString.length >= KDK_LENGTH) {
         val startIndex = hexString.length - KDK_LENGTH
-        return Hex.decode(hexString.substring(startIndex))
+        Hex.decode(hexString.substring(startIndex))
     } else {
-        return null
+        null
     }
 }

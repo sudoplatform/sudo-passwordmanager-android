@@ -41,4 +41,17 @@ class SecretCodeTest {
             element shouldBe zero
         }
     }
+
+    @Test
+    fun `parseSecretCode() should ignore whitespaces and dashes`() {
+        val secretCodeDashes = parseSecretCode("000000-00000-00000-00000-00000-000000")
+
+        val secretCodeSpaces = parseSecretCode(" 000000 00000 00000 00000 00000 000000 ")
+        val secretCodeNoDashes = parseSecretCode("00000000000000000000000000000000")
+        val secretCodeSpacesAndDashes = parseSecretCode("   000000 - 00000 - 00000 - 00000 - 00000 - 000000   ")
+
+        secretCodeDashes shouldBe secretCodeSpaces
+        secretCodeDashes shouldBe secretCodeNoDashes
+        secretCodeDashes shouldBe secretCodeSpacesAndDashes
+    }
 }
